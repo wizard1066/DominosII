@@ -134,10 +134,7 @@ class Connect: NSObject {
   }
   
   func send(_ content: String?) {
-//    if switcher {
-//      talking = tcpconnection
-//      print("rediverted talking")
-//    }
+
     let contentToSendUDP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
@@ -177,7 +174,7 @@ class Connect: NSObject {
         let backToString = String(decoding: data, as: UTF8.self)
         print("content ",content,backToString)
         DispatchQueue.main.async {
-          talkingPublisher.send(backToString)
+          talkingPublisher.send(backToString + "Connect")
         }
 
           

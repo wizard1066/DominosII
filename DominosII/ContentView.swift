@@ -11,12 +11,14 @@ import Network
 import Combine
 
 let talkingPublisher = PassthroughSubject<String, Never>()
+let setUpTalk = PassthroughSubject<NWConnection, Never>()
 
 struct ContentView: View {
   @State var name: String = ""
   @State var talk = Connect()
   @State var listen = Listen()
   @State var message:String = ""
+  
   
   
   var body: some View {

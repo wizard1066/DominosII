@@ -76,6 +76,13 @@ class Listen: NSObject {
     connection.send(content: data, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
         print("special send ")
+        DispatchQueue.main.async {
+          setUpTalk.send(connection)
+        }
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + Double(0)) {
+//
+//        }
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }
@@ -217,7 +224,7 @@ class Listen: NSObject {
         let backToString = String(decoding: data, as: UTF8.self)
         print("content ",content,backToString)
         DispatchQueue.main.async {
-          talkingPublisher.send(backToString)
+          talkingPublisher.send(backToString + "Listen")
         }
 
           
