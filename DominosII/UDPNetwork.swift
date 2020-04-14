@@ -11,7 +11,13 @@ import Network
 
 let serviceUDPName = "_domino._udp"
 
-class UDPNetwork: NSObject {
+
+
+  
+
+
+
+class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   
   private var talking: NWConnection?
   private var listening: NWListener?
@@ -24,8 +30,15 @@ class UDPNetwork: NSObject {
         switch(serviceChange) {
         case .add(let endpoint):
           switch endpoint {
-          case let .service(name, _, _, _):
-            print("Service ",name)
+          case let .service(name: name, type: type, domain: domain, interface: interface):
+            print("Service ",name,type,domain,interface)
+          default:
+            break
+          }
+        case .remove(let endpoint):
+          switch endpoint {
+          case let .service(name: name, type: type, domain: domain, interface: interface):
+            print("Service ",name,type,domain,interface)
           default:
             break
           }

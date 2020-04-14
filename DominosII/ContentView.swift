@@ -8,8 +8,20 @@
 
 import SwiftUI
 import Combine
+import Foundation
 
 let talkingPublisher = PassthroughSubject<String, Never>()
+
+func nodeName() {
+  var name = UIDevice.current.name
+  print("name ",name)
+//  uname(&name)
+//  return withUnsafePointer(to: &name.nodename) {
+//    String.init(cString: UnsafePointer(&name.nodename))
+//  }
+}
+
+let foo = myNetService()
 
 struct ContentView: View {
   @State var name: String = ""
@@ -17,16 +29,23 @@ struct ContentView: View {
   @State var udpCode = UDPNetwork()
   @State var tcpCode = TCPNetwork()
   @State var message:String = ""
+
+  
   
   var body: some View {
     return VStack {
+      Button(action: {
+        foo.search()
+      }) {
+        Text("search")
+      }
       Spacer()
       Group {
 
       Button(action: {
-        self.tcpCode.listenTCP(port: 5418)
+//        self.tcpCode.listenTCP(port: 5418)
 //        self.tcpCode.bonjourTCP("dominoV")
-//        self.udpCode.bonjourUDP("dominoV")
+        self.udpCode.bonjourUDP(UIDevice.current.name)
 //          self.udpCode.listenUDP(1854)
       }) {
         Text("start server")
@@ -34,9 +53,9 @@ struct ContentView: View {
       
       Spacer()
       Button(action: {
-        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
+//        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
 //        self.tcpCode.bonjourToTCP("dominoV")
-//        self.udpCode.bonjourToUDP("dominoV")
+        self.udpCode.bonjourToUDP(UIDevice.current.name)
 //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
       }) {
         Text("connect")
