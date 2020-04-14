@@ -7,15 +7,29 @@
 //
 
 import UIKit
+import Combine
 
-class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
-  
+final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelegate, ObservableObject, Identifiable {
+
+ struct objectOf {
+    var id:UUID? = UUID()
+    var device:String = ""
+  }
+
+ @Published var devices: [objectOf] = [] {
+    willSet {
+      objectWillChange.send()
+    }
+  }
+
   var nsb : NetServiceBrowser!
   var services = [NetService]()
+//  var devices = [String]()
   
   func search() {
     print("listening for services...")
     self.services.removeAll()
+    devices.removeAll()
     self.nsb = NetServiceBrowser()
     self.nsb.delegate = self
     self.nsb.searchForServices(ofType:"_domino._udp", inDomain: "local")
@@ -36,19 +50,24 @@ class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
   func netServiceBrowser(_ aNetServiceBrowser: NetServiceBrowser, didFind aNetService: NetService, moreComing: Bool) {
     print("adding a service")
     self.services.append(aNetService)
+    let bean = objectOf(device: aNetService.name)
+    devices.append(bean)
     if !moreComing {
       self.updateInterface()
     }
+    mobilePublisher.send()
   }
   
   func netServiceBrowser(_ aNetServiceBrowser: NetServiceBrowser, didRemove aNetService: NetService, moreComing: Bool) {
     if let index = self.services.firstIndex(of:aNetService) {
       self.services.remove(at:index)
+      devices.remove(at:index)
       print("removing a service")
       if !moreComing {
         self.updateInterface()
       }
     }
+    mobilePublisher.send()
   }
 }
 
