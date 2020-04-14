@@ -124,6 +124,14 @@ class TCPNetwork: NSObject {
     }
   }
   
+  var tcpLink = false
+  var tcpConnection: NWConnection?
+  
+  func resetTCPLink() {
+    tcpLink = false
+    tcpConnection = nil
+  }
+  
   // 65535 is the maximum number of fragments for an IPv4 datagram or TCP packet
   func receive65535(on connection: NWConnection, recursive: Bool) {
     connection.receive(minimumIncompleteLength: 1, maximumLength: 65535) { (data, context, isComplete, error) in
@@ -133,11 +141,26 @@ class TCPNetwork: NSObject {
           let backToString = String(decoding: content, as: UTF8.self)
           talkingPublisher.send(backToString + " TCP")
         }
+        self.tcpLink = true
+        self.tcpConnection = connection
       }
+      
       if connection.state == .ready && isComplete == false && recursive {
         self.receive65535(on: connection, recursive: true)
       }
     }
+  }
+  
+  func specialTCPSend(on connection: NWConnection, content:String) {
+    let contentToSendTCP = content.data(using: String.Encoding.utf8)
+      connection.send(content: contentToSendTCP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+        self.receive65535(on: connection, recursive: false)
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
   }
   
   func bonjourToTCP(_ called:String) {
@@ -167,6 +190,10 @@ class TCPNetwork: NSObject {
 //  }
   
   func send(_ content: String?) {
+    if tcpLink {
+      specialTCPSend(on: tcpConnection!, content: content!)
+      return
+    }
     let contentToSendTCP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendTCP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
@@ -182,7 +209,7 @@ class TCPNetwork: NSObject {
     let contentToSendTCP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendTCP, contentContext: NWConnection.ContentContext.finalMessage, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
-        self.talking?.cancel()
+//        self.talking?.cancel()
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }

@@ -26,13 +26,13 @@ final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelega
   var services = [NetService]()
 //  var devices = [String]()
   
-  func search() {
+  func search(typeOf:String) {
     print("listening for services...")
     self.services.removeAll()
     devices.removeAll()
     self.nsb = NetServiceBrowser()
     self.nsb.delegate = self
-    self.nsb.searchForServices(ofType:"_domino._udp", inDomain: "local")
+    self.nsb.searchForServices(ofType:typeOf, inDomain: "local")
   }
   
   func updateInterface () {

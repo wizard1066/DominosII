@@ -55,51 +55,53 @@ struct ContentView: View {
       //      }.clipped()
       //        .frame(width: 128, height: 96, alignment: .center)
       
-      TextField("Give me stuff to send", text: $telegram, onCommit: {
+      TextField("sending What ", text: $telegram, onCommit: {
         //        self.tcpCode.send(self.name)
-        self.udpCode.send(self.telegram)
+        self.tcpCode.send(self.telegram)
       })
       .multilineTextAlignment(.center)
       .padding(64)
-      Text(self.name)
+      Text("sending To " + self.name).padding()
+      Text(message).padding()
+          .onReceive(talkingPublisher) { ( data ) in
+            self.message = "received " + data
+        }
 //      Spacer()
       Group {
-        Button(action: {
-          self.mobile.search()
-        }) {
-          Text("search")
-        }
-//        Spacer()
-        Button(action: {
+                Button(action: {
           //        self.tcpCode.listenTCP(port: 5418)
-          //        self.tcpCode.bonjourTCP("dominoV")
-          self.udpCode.bonjourUDP(UIDevice.current.name)
+        self.tcpCode.bonjourTCP(UIDevice.current.name)
+//          self.udpCode.bonjourUDP(UIDevice.current.name)
           //          self.udpCode.listenUDP(1854)
         }) {
           Text("start server")
-        }
-        
+        }.padding()
+        Button(action: {
+          self.mobile.search(typeOf: "_domino._tcp")
+          self.tcpCode.resetTCPLink()
+        }) {
+          Text("search")
+        }.padding()
 //        Spacer()
+
+        
         Button(action: {
           print("mobile.devices ",self.mobile.devices)
           //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
-          //        self.tcpCode.bonjourToTCP("dominoV")
-          self.udpCode.bonjourToUDP(self.name)
+        self.tcpCode.bonjourToTCP(self.name)
+//          self.udpCode.bonjourToUDP(self.name)
           //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
         }) {
           Text("connect")
-        }
+        }.padding()
 //        Spacer()
         Button(action: {
           self.tcpCode.sendEnd(nil)
         }) {
           Text("disconnect")
-        }
+        }.padding()
 //        Spacer()
-        Text(message)
-          .onReceive(talkingPublisher) { ( data ) in
-            self.message = data
-        }
+        
       }
     }
   }
