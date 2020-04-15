@@ -110,13 +110,13 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     udpConnection = nil
   }
   
-  func superUDPSend(on connection: NWConnection, content:String) {
+  func superUDPSend(content:String) {
     let contentToSendUDP = content.data(using: String.Encoding.utf8)
       let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
-      connection.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+        self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
         // This is pickup any immediate response
-        self.receive(on: connection, recursive: false)
+//        self.receive(on: self.talking, recursive: false)
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }
@@ -202,6 +202,8 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     }
     self.talking?.start(queue: .main)
   }
+  
+  
   
   func send(_ content: String?) {
     if udpLink {

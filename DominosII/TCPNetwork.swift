@@ -46,7 +46,7 @@ class TCPNetwork: NSObject {
           switch newState {
           case .ready:
             print("new TCP connection")
-            self.receive65535(on: newConnection, recursive: true)
+            self.receive(on: newConnection, recursive: true)
           default:
             break
           }
@@ -199,6 +199,19 @@ class TCPNetwork: NSObject {
       if (NWError == nil) {
         resetPublisher.send()
 //        self.talking?.cancel()
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
+  }
+  
+  func superTCPSend(content:String) {
+    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+      let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
+        self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+//        self.receive(on: self.talking, recursive: false)
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }

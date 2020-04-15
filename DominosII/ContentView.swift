@@ -13,6 +13,12 @@ let talkingPublisher = PassthroughSubject<String, Never>()
 let mobilePublisher = PassthroughSubject<Void, Never>()
 let resetPublisher = PassthroughSubject<Void, Never>()
 
+struct Fonts {
+  static func avenirNextCondensedBold (size:CGFloat) -> Font{
+    return Font.custom("AvenirNextCondensed-Bold",size: size)
+  }
+}
+
 
 //class sharedDevices: ObservableObject {
 //  @Published var devices: [String] {
@@ -34,12 +40,18 @@ struct ContentView: View {
   @State var tcpCode = TCPNetwork()
   @State var message:String = ""
   @State var selected = 0
+  @State var startSvr = false
+  @State var searchSvr = false
+  @State var connectSvr = false
+  @State var stopStr = false
   
   var body: some View {
     return VStack {
       List(mobile.devices, id: \.device) { item in
         VStack {
-          Text(item.device).onTapGesture {
+          Text(item.device)
+            .font(Fonts.avenirNextCondensedBold(size: 16))
+            .onTapGesture {
             print("item.device ",item.device)
             self.name = item.device
           }
@@ -58,55 +70,110 @@ struct ContentView: View {
       
       TextField("sending What ", text: $telegram, onCommit: {
         //        self.tcpCode.send(self.telegram)
-        self.udpCode.send(self.telegram)
+//        self.tcpCode.send(self.telegram)
+        self.tcpCode.superTCPSend(content: self.telegram)
       })
+      .font(Fonts.avenirNextCondensedBold(size: 16))
       .multilineTextAlignment(.center)
       .padding(64)
       Text("sending To " + self.name)
+      .font(Fonts.avenirNextCondensedBold(size: 16))
       .padding()
       .onReceive(resetPublisher) { (_) in
         self.name = ""
       }
-      Text(message).padding()
+      Text(message)
+          .font(Fonts.avenirNextCondensedBold(size: 16))
+          .padding()
           .onReceive(talkingPublisher) { ( data ) in
             self.message = "received " + data
         }
-//      Spacer()
       Group {
-                Button(action: {
-          //        self.tcpCode.listenTCP(port: 5418)
-//        self.tcpCode.bonjourTCP(UIDevice.current.name)
-          self.udpCode.bonjourUDP(UIDevice.current.name)
-          //          self.udpCode.listenUDP(1854)
-        }) {
+        HStack {
+          Image("Image-1")
+          .resizable()
+          .frame(width: 32, height: 32, alignment: .center)
+          .overlay(
+            Image("Image-Back")
+            .resizable()
+            .opacity(0.4)
+            .frame(width: 48, height: 48, alignment: .center)
+            )
           Text("start server")
-        }.padding()
+          .font(Fonts.avenirNextCondensedBold(size: 16))
+          .foregroundColor(Color.blue)
+          .background(startSvr ? Color.yellow:Color.clear)
+          .onTapGesture {
+            self.startSvr = true
+            //        self.tcpCode.listenTCP(port: 5418)
+        self.tcpCode.bonjourTCP(UIDevice.current.name)
+//          self.udpCode.bonjourUDP(UIDevice.current.name)
+          //          self.udpCode.listenUDP(1854)
+          }.padding()
+        }
+        HStack {
+        Image("Image-2")
+        .resizable()
+        .frame(width: 32, height: 32, alignment: .center)
+        .overlay(
+            Image("Image-Back")
+            .resizable()
+            .opacity(0.4)
+            .frame(width: 48, height: 48, alignment: .center)
+            )
         Button(action: {
 //          self.mobile.search(typeOf: "_domino._tcp")
-          self.mobile.search(typeOf: "_domino._udp")
+          self.mobile.search(typeOf: "_domino._tcp")
           self.tcpCode.resetTCPLink()
         }) {
           Text("search")
+           .foregroundColor(Color.blue)
+           .background(searchSvr ? Color.yellow:Color.clear)
+          .font(Fonts.avenirNextCondensedBold(size: 16))
         }.padding()
-//        Spacer()
-
-        
+        }
+        HStack {
+        Image("Image-3")
+        .resizable()
+        .frame(width: 32, height: 32, alignment: .center)
+        .overlay(
+            Image("Image-Back")
+            .resizable()
+            .opacity(0.4)
+            .frame(width: 48, height: 48, alignment: .center)
+            )
         Button(action: {
           print("mobile.devices ",self.mobile.devices)
           //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
-//        self.tcpCode.bonjourToTCP(self.name)
-          self.udpCode.bonjourToUDP(self.name)
+          self.tcpCode.bonjourToTCP(self.name)
+//          self.udpCode.bonjourToUDP(self.name)
           //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
         }) {
           Text("connect")
+          .font(Fonts.avenirNextCondensedBold(size: 16))
+          .foregroundColor(Color.blue)
+          .background(connectSvr ? Color.yellow:Color.clear)
         }.padding()
-//        Spacer()
-        Button(action: {
+        }
+        HStack {
+          Image("Image-4")
+          .resizable()
+          .frame(width: 32, height: 32, alignment: .center)
+          .overlay(
+            Image("Image-Back")
+            .resizable()
+            .opacity(0.4)
+            .frame(width: 48, height: 48, alignment: .center)
+            )
+          Button(action: {
           self.tcpCode.sendEnd(nil)
         }) {
           Text("disconnect")
+          .font(Fonts.avenirNextCondensedBold(size: 16))
         }.padding()
-//        Spacer()
+        }
+        
+
         
       }
     }
