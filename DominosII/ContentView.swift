@@ -33,7 +33,7 @@ struct Fonts {
 //}
 
 struct ContentView: View {
-  @ObservedObject var mobile = BonjourSearch()
+  @ObservedObject var mobile = BonjourBrowser()
   @State var name: String = ""
   @State var telegram:String = ""
   @State var udpCode = UDPNetwork()
@@ -105,6 +105,7 @@ struct ContentView: View {
           .background(startSvr ? Color.yellow:Color.clear)
           .onTapGesture {
             self.startSvr = true
+            
             //        self.tcpCode.listenTCP(port: 5418)
         self.tcpCode.bonjourTCP(UIDevice.current.name)
 //          self.udpCode.bonjourUDP(UIDevice.current.name)
@@ -121,16 +122,23 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-        Button(action: {
+//        Button(action: {
+////          self.mobile.search(typeOf: "_domino._tcp")
 //          self.mobile.search(typeOf: "_domino._tcp")
-          self.mobile.search(typeOf: "_domino._tcp")
-          self.tcpCode.resetTCPLink()
-        }) {
+//          self.tcpCode.resetTCPLink()
+//        }) {
           Text("search")
-           .foregroundColor(Color.blue)
-           .background(searchSvr ? Color.yellow:Color.clear)
+          .foregroundColor(Color.blue)
+          .background(searchSvr ? Color.yellow:Color.clear)
           .font(Fonts.avenirNextCondensedBold(size: 16))
-        }.padding()
+          .onTapGesture {
+            self.searchSvr = true
+            //          self.mobile.search(typeOf: "_domino._tcp")
+//          self.mobile.search(typeOf: "_domino._tcp")
+            self.mobile.seek(typeOf: serviceTCPName)
+          self.tcpCode.resetTCPLink()
+          }
+        .padding()
         }
         HStack {
         Image("Image-3")
@@ -142,18 +150,20 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-        Button(action: {
-          print("mobile.devices ",self.mobile.devices)
-          //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
-          self.tcpCode.bonjourToTCP(self.name)
-//          self.udpCode.bonjourToUDP(self.name)
-          //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
-        }) {
+        
           Text("connect")
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .foregroundColor(Color.blue)
           .background(connectSvr ? Color.yellow:Color.clear)
-        }.padding()
+          .onTapGesture {
+            self.connectSvr = true
+             print("mobile.devices ",self.mobile.devices)
+          //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
+          self.tcpCode.bonjourToTCP(self.name)
+//          self.udpCode.bonjourToUDP(self.name)
+          //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
+          }
+        .padding()
         }
         HStack {
           Image("Image-4")
@@ -165,12 +175,15 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-          Button(action: {
-          self.tcpCode.sendEnd(nil)
-        }) {
+          
           Text("disconnect")
           .font(Fonts.avenirNextCondensedBold(size: 16))
-        }.padding()
+          .background(stopStr ? Color.yellow:Color.clear)
+          .onTapGesture {
+            self.stopStr = true
+            self.tcpCode.sendEnd(nil)
+          }
+        .padding()
         }
         
 

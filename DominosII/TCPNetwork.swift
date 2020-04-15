@@ -105,6 +105,19 @@ class TCPNetwork: NSObject {
     self.talking?.start(queue: .main)
   }
   
+  func bonjourToTCP(_ called:String) {
+    self.talking = NWConnection(to: .service(name: called, type: serviceTCPName, domain: "local", interface: nil), using: .tcp)
+    self.talking?.stateUpdateHandler = { (newState) in
+      switch (newState) {
+      case .ready:
+        print("new TCP connection")
+      default:
+        break
+      }
+    }
+    self.talking?.start(queue: .main)
+  }
+  
   func receive(on connection: NWConnection, recursive: Bool) {
     print("listening")
     connection.receiveMessage { (data, context, isComplete, error) in
@@ -151,31 +164,9 @@ class TCPNetwork: NSObject {
     }
   }
   
-  func specialTCPSend(on connection: NWConnection, content:String) {
-    let contentToSendTCP = content.data(using: String.Encoding.utf8)
-      connection.send(content: contentToSendTCP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
-      if (NWError == nil) {
-        // This is pickup any immediate response
-        self.receive65535(on: connection, recursive: false)
-      } else {
-        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
-      }
-    })))
-    connection.start(queue: .main)
-  }
+
   
-  func bonjourToTCP(_ called:String) {
-    self.talking = NWConnection(to: .service(name: called, type: serviceTCPName, domain: "local", interface: nil), using: .tcp)
-    self.talking?.stateUpdateHandler = { (newState) in
-      switch (newState) {
-      case .ready:
-        print("new TCP connection")
-      default:
-        break
-      }
-    }
-    self.talking?.start(queue: .main)
-  }
+
   
   func send(_ content: String?) {
     if tcpLink {
@@ -203,6 +194,19 @@ class TCPNetwork: NSObject {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }
     })))
+  }
+  
+    func specialTCPSend(on connection: NWConnection, content:String) {
+    let contentToSendTCP = content.data(using: String.Encoding.utf8)
+      connection.send(content: contentToSendTCP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+        self.receive65535(on: connection, recursive: false)
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
+    connection.start(queue: .main)
   }
   
   func superTCPSend(content:String) {
