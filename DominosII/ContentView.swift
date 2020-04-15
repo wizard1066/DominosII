@@ -11,6 +11,7 @@ import Combine
 
 let talkingPublisher = PassthroughSubject<String, Never>()
 let mobilePublisher = PassthroughSubject<Void, Never>()
+let resetPublisher = PassthroughSubject<Void, Never>()
 
 
 //class sharedDevices: ObservableObject {
@@ -56,12 +57,16 @@ struct ContentView: View {
       //        .frame(width: 128, height: 96, alignment: .center)
       
       TextField("sending What ", text: $telegram, onCommit: {
-        //        self.tcpCode.send(self.name)
-        self.tcpCode.send(self.telegram)
+        //        self.tcpCode.send(self.telegram)
+        self.udpCode.send(self.telegram)
       })
       .multilineTextAlignment(.center)
       .padding(64)
-      Text("sending To " + self.name).padding()
+      Text("sending To " + self.name)
+      .padding()
+      .onReceive(resetPublisher) { (_) in
+        self.name = ""
+      }
       Text(message).padding()
           .onReceive(talkingPublisher) { ( data ) in
             self.message = "received " + data
@@ -70,14 +75,15 @@ struct ContentView: View {
       Group {
                 Button(action: {
           //        self.tcpCode.listenTCP(port: 5418)
-        self.tcpCode.bonjourTCP(UIDevice.current.name)
-//          self.udpCode.bonjourUDP(UIDevice.current.name)
+//        self.tcpCode.bonjourTCP(UIDevice.current.name)
+          self.udpCode.bonjourUDP(UIDevice.current.name)
           //          self.udpCode.listenUDP(1854)
         }) {
           Text("start server")
         }.padding()
         Button(action: {
-          self.mobile.search(typeOf: "_domino._tcp")
+//          self.mobile.search(typeOf: "_domino._tcp")
+          self.mobile.search(typeOf: "_domino._udp")
           self.tcpCode.resetTCPLink()
         }) {
           Text("search")
@@ -88,8 +94,8 @@ struct ContentView: View {
         Button(action: {
           print("mobile.devices ",self.mobile.devices)
           //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
-        self.tcpCode.bonjourToTCP(self.name)
-//          self.udpCode.bonjourToUDP(self.name)
+//        self.tcpCode.bonjourToTCP(self.name)
+          self.udpCode.bonjourToUDP(self.name)
           //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
         }) {
           Text("connect")

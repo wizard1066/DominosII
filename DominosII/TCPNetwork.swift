@@ -161,6 +161,7 @@ class TCPNetwork: NSObject {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }
     })))
+    connection.start(queue: .main)
   }
   
   func bonjourToTCP(_ called:String) {
@@ -175,19 +176,6 @@ class TCPNetwork: NSObject {
     }
     self.talking?.start(queue: .main)
   }
-  
-//  func connectToTCP(hostTCP:NWEndpoint.Host,portTCP:NWEndpoint.Port) {
-//    self.talking = NWConnection(host: hostTCP, port: portTCP, using: .tcp)
-//    self.talking?.stateUpdateHandler = { (newState) in
-//      switch (newState) {
-//      case .ready:
-//        print("new TCP connection")
-//      default:
-//        break
-//      }
-//    }
-//    self.talking?.start(queue: .main)
-//  }
   
   func send(_ content: String?) {
     if tcpLink {
@@ -209,6 +197,7 @@ class TCPNetwork: NSObject {
     let contentToSendTCP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendTCP, contentContext: NWConnection.ContentContext.finalMessage, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
+        resetPublisher.send()
 //        self.talking?.cancel()
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")

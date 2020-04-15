@@ -89,7 +89,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           switch newState {
           case .ready:
             print("new UDP connection")
-            self.receive(on: newConnection, recursive: true)
+            self.receive8192(on: newConnection, recursive: true)
           default:
             break
           }
@@ -100,6 +100,40 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
       print("unable to create listener")
     }
     self.listening?.start(queue: .main)
+  }
+  
+  var udpLink = false
+  var udpConnection: NWConnection?
+  
+  func resetTCPLink() {
+    udpLink = false
+    udpConnection = nil
+  }
+  
+  func superUDPSend(on connection: NWConnection, content:String) {
+    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+      let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
+      connection.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+        self.receive(on: connection, recursive: false)
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
+  }
+  
+  func specialUDPSend(on connection: NWConnection, content:String) {
+    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+        self.receive(on: connection, recursive: false)
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
+    connection.start(queue: .main)
   }
   
   func receive(on connection: NWConnection, recursive: Bool) {
@@ -114,6 +148,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           let backToString = String(decoding: content, as: UTF8.self)
           talkingPublisher.send(backToString + " UDP")
         }
+        
         }
         if connection.state == .ready && isComplete == false && recursive {
           self.receive(on: connection, recursive: true)
@@ -131,6 +166,8 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           let backToString = String(decoding: content, as: UTF8.self)
           talkingPublisher.send(backToString + " UDP")
         }
+        self.udpLink = true
+        self.udpConnection = connection
         }
         if connection.state == .ready && isComplete == false && recursive {
           self.receive8192(on: connection, recursive: true)
@@ -167,6 +204,10 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   }
   
   func send(_ content: String?) {
+    if udpLink {
+      specialUDPSend(on: udpConnection!, content: content!)
+      return
+    }
     let contentToSendUDP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
