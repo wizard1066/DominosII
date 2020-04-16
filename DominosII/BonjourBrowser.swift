@@ -11,13 +11,13 @@ import Combine
 import Network
 
 final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
-
-  struct objectOf {
+  
+  struct objectOf:Hashable {
     var id:UUID? = UUID()
     var device:String = ""
   }
-
- @Published var devices: [objectOf] = [] {
+  
+  @Published var devices: [objectOf] = [] {
     willSet {
       objectWillChange.send()
     }
@@ -29,73 +29,74 @@ final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
     let bonjourTCP = NWBrowser.Descriptor.bonjour(type: typeOf , domain: nil)
     let bonjourParms = NWParameters.init()
     browser = NWBrowser(for: bonjourTCP, using: bonjourParms)
-    browser.browseResultsChangedHandler = { ( results, changes ) in
-      let memory = self.browser.browseResults
-//
-//      for mem in memory {
-//        let cap = mem.endpoint.debugDescription.split(separator: ".")
-//        let bean = objectOf(device: String(cap[0]))
-//        self.devices.append(bean)
-//        mobilePublisher.send()
-//      }
-      
-      for result in results {
-        print("result ", result )
-        if case .service(let service) = result.endpoint {
-          print("bonjourA ",service.name)
-          let bean = objectOf(device: service.name)
-        self.devices.append(bean)
+    browser.stateUpdateHandler = {newState in
+      switch newState {
+      case .ready:
+        print("new bonjour connection")
+      default:
+        break
       }
     }
-//
-//      for change in changes {
-//        if case .added(let added) = change
-//        {
-//            if case .service(let service) = added.endpoint
-//            {
-//                debugPrint("bonjourB ",service)
-//            } else {
-//                assert(false, "This nevers gets executed")
-//            }
+    browser.browseResultsChangedHandler = { ( results, changes ) in
+//      for result in results {
+//        if case .service(let service) = result.endpoint {
+//          print("bonjourA ",service.name)
+//          let device = objectOf(device: service.name)
+//          self.devices.append(device)
 //        }
-//    }
-    
+//      }
+      for change in changes {
+        if case .added(let added) = change {
+          if case .service(let service) = added.endpoint {
+            let device = objectOf(device: service.name)
+            self.devices.append(device)
+//            mobilePublisher.send()
+          }
+          if case .removed(let removed) = change {
+            if case .service(let service) = removed.endpoint {
+              let index = self.devices.firstIndex(where:{$0.device == service.name })
+              self.devices.remove(at: index!)
+//              mobilePublisher.send()
+            }
+          }
+        }
+        
+        
+      }
     }
-    
-    browser.start(queue: DispatchQueue.main)
+    self.browser.start(queue: DispatchQueue.main)
   }
-  
   
 }
 
 final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelegate, ObservableObject, Identifiable {
-
-
- struct objectOf {
+  
+  
+  struct objectOf {
     var id:UUID? = UUID()
     var device:String = ""
   }
-
- @Published var devices: [objectOf] = [] {
+  
+  @Published var devices: [objectOf] = [] {
     willSet {
       objectWillChange.send()
     }
   }
-
+  
   var nsb : NetServiceBrowser!
   var services = [NetService]()
-//  var devices = [String]()
+  //  var devices = [String]()
   
   func search(typeOf:String) {
     let seeker = BonjourBrowser()
     seeker.seek(typeOf: serviceTCPName)
-//
-//    print("listening for services...")
-//    self.services.removeAll()
-//    devices.removeAll()
-//    self.nsb = NetServiceBrowser()
-//    self.nsb.delegate = self
-//    self.nsb.searchForServices(ofType:typeOf, inDomain: "local")
+    //
+    //    print("listening for services...")
+    //    self.services.removeAll()
+    //    devices.removeAll()
+    //    self.nsb = NetServiceBrowser()
+    //    self.nsb.delegate = self
+    //    self.nsb.searchForServices(ofType:typeOf, inDomain: "local")
   }
   
   func updateInterface () {
@@ -118,7 +119,7 @@ final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelega
     if !moreComing {
       self.updateInterface()
     }
-//    mobilePublisher.send()
+    //    mobilePublisher.send()
   }
   
   func netServiceBrowser(_ aNetServiceBrowser: NetServiceBrowser, didRemove aNetService: NetService, moreComing: Bool) {
@@ -130,7 +131,7 @@ final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelega
         self.updateInterface()
       }
     }
-//    mobilePublisher.send()
+    //    mobilePublisher.send()
   }
 }
 

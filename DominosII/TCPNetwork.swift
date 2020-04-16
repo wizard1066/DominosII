@@ -106,6 +106,10 @@ class TCPNetwork: NSObject {
   }
   
   func bonjourToTCP(_ called:String) {
+    if called.isEmpty {
+      alertPublisher.send()
+      return
+    }
     self.talking = NWConnection(to: .service(name: called, type: serviceTCPName, domain: "local", interface: nil), using: .tcp)
     self.talking?.stateUpdateHandler = { (newState) in
       switch (newState) {

@@ -11,12 +11,6 @@ import Network
 
 let serviceUDPName = "_domino._udp"
 
-
-
-  
-
-
-
 class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   
   private var talking: NWConnection?
@@ -102,39 +96,28 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.listening?.start(queue: .main)
   }
   
-  var udpLink = false
-  var udpConnection: NWConnection?
+//  var udpLink = false
+//  var udpConnection: NWConnection?
+//
+//  func resetUDPLink() {
+//    udpLink = false
+//    udpConnection = nil
+//  }
   
-  func resetTCPLink() {
-    udpLink = false
-    udpConnection = nil
-  }
+
   
-  func superUDPSend(content:String) {
-    let contentToSendUDP = content.data(using: String.Encoding.utf8)
-      let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
-        self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
-      if (NWError == nil) {
-        // This is pickup any immediate response
-//        self.receive(on: self.talking, recursive: false)
-      } else {
-        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
-      }
-    })))
-  }
-  
-  func specialUDPSend(on connection: NWConnection, content:String) {
-    let contentToSendUDP = content.data(using: String.Encoding.utf8)
-      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
-      if (NWError == nil) {
-        // This is pickup any immediate response
-        self.receive(on: connection, recursive: false)
-      } else {
-        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
-      }
-    })))
-    connection.start(queue: .main)
-  }
+//  func specialUDPSend(on connection: NWConnection, content:String) {
+//    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+//      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+//      if (NWError == nil) {
+//        // This is pickup any immediate response
+//        self.receive(on: connection, recursive: false)
+//      } else {
+//        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+//      }
+//    })))
+//    connection.start(queue: .main)
+//  }
   
   func receive(on connection: NWConnection, recursive: Bool) {
       print("listening")
@@ -166,26 +149,13 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           let backToString = String(decoding: content, as: UTF8.self)
           talkingPublisher.send(backToString + " UDP")
         }
-        self.udpLink = true
-        self.udpConnection = connection
+//        self.udpLink = true
+//        self.udpConnection = connection
         }
         if connection.state == .ready && isComplete == false && recursive {
           self.receive8192(on: connection, recursive: true)
         }
     }
-  }
-  
-  func bonjourToUDP(_ called:String) {
-    self.talking = NWConnection(to: .service(name: called, type: serviceUDPName, domain: "local", interface: nil), using: .udp)
-    self.talking?.stateUpdateHandler = { (newState) in
-      switch (newState) {
-      case .ready:
-        print("new UDP connection")
-      default:
-        break
-      }
-    }
-    self.talking?.start(queue: .main)
   }
   
   func connectToUDP(host:String,port:String) {
@@ -203,18 +173,42 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.talking?.start(queue: .main)
   }
   
-  
+    func bonjourToUDP(_ called:String) {
+    self.talking = NWConnection(to: .service(name: called, type: serviceUDPName, domain: "local", interface: nil), using: .udp)
+    self.talking?.stateUpdateHandler = { (newState) in
+      switch (newState) {
+      case .ready:
+        print("new UDP connection")
+      default:
+        break
+      }
+    }
+    self.talking?.start(queue: .main)
+  }
   
   func send(_ content: String?) {
-    if udpLink {
-      specialUDPSend(on: udpConnection!, content: content!)
-      return
-    }
+//    if udpLink {
+//      specialUDPSend(on: udpConnection!, content: content!)
+//      return
+//    }
     let contentToSendUDP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
         // This is pickup any immediate response
         self.receive(on: self.talking!, recursive: false)
+      } else {
+        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+      }
+    })))
+  }
+  
+    func superUDPSend(content:String) {
+    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+      let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
+        self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+      if (NWError == nil) {
+        // This is pickup any immediate response
+//        self.receive(on: self.talking, recursive: false)
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }

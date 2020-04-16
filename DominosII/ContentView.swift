@@ -12,6 +12,7 @@ import Combine
 let talkingPublisher = PassthroughSubject<String, Never>()
 let mobilePublisher = PassthroughSubject<Void, Never>()
 let resetPublisher = PassthroughSubject<Void, Never>()
+let alertPublisher = PassthroughSubject<Void, Never>()
 
 struct Fonts {
   static func avenirNextCondensedBold (size:CGFloat) -> Font{
@@ -19,18 +20,6 @@ struct Fonts {
   }
 }
 
-
-//class sharedDevices: ObservableObject {
-//  @Published var devices: [String] {
-//    willSet {
-//      objectWillChange.send()
-//    }
-//  }
-//
-//  init() {
-//    self.devices = []
-//  }
-//}
 
 struct ContentView: View {
   @ObservedObject var mobile = BonjourBrowser()
@@ -44,34 +33,37 @@ struct ContentView: View {
   @State var searchSvr = false
   @State var connectSvr = false
   @State var stopStr = false
+  @State var showingAlert = false
+  
+  @State var background = Color.yellow
+  @State var isSelected = false
   
   var body: some View {
     return VStack {
+//      List {
+//        ForEach(mobile.devices, id: \.self) { each in
+//                Text(each.device)
+//                .onTapGesture {
+//                  self.name = each.device
+//                  self.isSelected = !self.isSelected
+//          }
+//            }
+//            .font(Fonts.avenirNextCondensedBold(size: 16))
+//            .listRowBackground(isSelected ? Color.yellow: Color.clear)
+    
       List(mobile.devices, id: \.device) { item in
-        VStack {
           Text(item.device)
-            .font(Fonts.avenirNextCondensedBold(size: 16))
             .onTapGesture {
-            print("item.device ",item.device)
             self.name = item.device
           }
-        }
-      }.frame(width: 256, height: 128, alignment: .center)
-      
-      //      Picker(selection: self.$selected, label: Text("")) {
-      //        ForEach(self.mobile.devices, id: \.device) { dix in
-      //          Text(dix.device)
-      //        }
-      //      }.pickerStyle(WheelPickerStyle())
-      //        .onTapGesture {
-      //          print("You tapped")
-      //      }.clipped()
-      //        .frame(width: 128, height: 96, alignment: .center)
+      }
+       .font(Fonts.avenirNextCondensedBold(size: 16))
+       .frame(width: 256, height: 128, alignment: .center)
       
       TextField("sending What ", text: $telegram, onCommit: {
-        //        self.tcpCode.send(self.telegram)
+        self.udpCode.send(self.telegram)
 //        self.tcpCode.send(self.telegram)
-        self.tcpCode.superTCPSend(content: self.telegram)
+//        self.tcpCode.superTCPSend(content: self.telegram)
       })
       .font(Fonts.avenirNextCondensedBold(size: 16))
       .multilineTextAlignment(.center)
@@ -82,6 +74,13 @@ struct ContentView: View {
       .onReceive(resetPublisher) { (_) in
         self.name = ""
       }
+      .onReceive(alertPublisher, perform: { (_) in
+        self.showingAlert = true
+      })
+      .alert(isPresented: $showingAlert) {
+          Alert(title: Text("No client selected"), message: Text("Sorry, You need to select a client first"), dismissButton: .default(Text("Try Again!")))
+        }
+      
       Text(message)
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .padding()
@@ -105,11 +104,10 @@ struct ContentView: View {
           .background(startSvr ? Color.yellow:Color.clear)
           .onTapGesture {
             self.startSvr = true
-            
-            //        self.tcpCode.listenTCP(port: 5418)
-        self.tcpCode.bonjourTCP(UIDevice.current.name)
-//          self.udpCode.bonjourUDP(UIDevice.current.name)
-          //          self.udpCode.listenUDP(1854)
+//      self.tcpCode.listenTCP(port: 5418)
+//        self.tcpCode.bonjourTCP(UIDevice.current.name)
+      self.udpCode.bonjourUDP(UIDevice.current.name)
+//      self.udpCode.listenUDP(1854)
           }.padding()
         }
         HStack {
@@ -122,21 +120,15 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-//        Button(action: {
-////          self.mobile.search(typeOf: "_domino._tcp")
-//          self.mobile.search(typeOf: "_domino._tcp")
-//          self.tcpCode.resetTCPLink()
-//        }) {
-          Text("search")
+          Text("search & select device")
           .foregroundColor(Color.blue)
           .background(searchSvr ? Color.yellow:Color.clear)
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .onTapGesture {
             self.searchSvr = true
-            //          self.mobile.search(typeOf: "_domino._tcp")
-//          self.mobile.search(typeOf: "_domino._tcp")
-            self.mobile.seek(typeOf: serviceTCPName)
-          self.tcpCode.resetTCPLink()
+          self.mobile.seek(typeOf: serviceUDPName)
+//            self.mobile.seek(typeOf: serviceTCPName)
+            self.tcpCode.resetTCPLink()
           }
         .padding()
         }
@@ -150,7 +142,6 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-        
           Text("connect")
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .foregroundColor(Color.blue)
@@ -158,10 +149,10 @@ struct ContentView: View {
           .onTapGesture {
             self.connectSvr = true
              print("mobile.devices ",self.mobile.devices)
-          //        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
-          self.tcpCode.bonjourToTCP(self.name)
-//          self.udpCode.bonjourToUDP(self.name)
-          //          self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
+//        self.tcpCode.connectToTCP(host: "192.168.1.110", port: "1854")
+//          self.tcpCode.bonjourToTCP(self.name)
+        self.udpCode.bonjourToUDP(self.name)
+//         self.udpCode.connectToUDP(host: "192.168.1.110", port: "1854")
           }
         .padding()
         }
@@ -185,9 +176,6 @@ struct ContentView: View {
           }
         .padding()
         }
-        
-
-        
       }
     }
   }
