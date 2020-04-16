@@ -13,8 +13,6 @@
 		7B0FB713244442430023B0B5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB712244442430023B0B5 /* Assets.xcassets */; };
 		7B0FB716244442430023B0B5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB715244442430023B0B5 /* Preview Assets.xcassets */; };
 		7B0FB719244442430023B0B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB717244442430023B0B5 /* LaunchScreen.storyboard */; };
-		7B0FB721244443750023B0B5 /* Connect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0FB720244443750023B0B5 /* Connect.swift */; };
-		7BDC769F24448D60005675EA /* Listen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC769E24448D60005675EA /* Listen.swift */; };
 		7BDC76A12444B67C005675EA /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A02444B67C005675EA /* Common.swift */; };
 		7BDC76A324459895005675EA /* UDPNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A224459895005675EA /* UDPNetwork.swift */; };
 		7BDC76A5244598A7005675EA /* TCPNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A4244598A7005675EA /* TCPNetwork.swift */; };
@@ -30,8 +28,6 @@
 		7B0FB715244442430023B0B5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7B0FB718244442430023B0B5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7B0FB71A244442430023B0B5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7B0FB720244443750023B0B5 /* Connect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect.swift; sourceTree = "<group>"; };
-		7BDC769E24448D60005675EA /* Listen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listen.swift; sourceTree = "<group>"; };
 		7BDC76A02444B67C005675EA /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		7BDC76A224459895005675EA /* UDPNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPNetwork.swift; sourceTree = "<group>"; };
 		7BDC76A4244598A7005675EA /* TCPNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCPNetwork.swift; sourceTree = "<group>"; };
@@ -68,8 +64,6 @@
 		7B0FB70B2444423C0023B0B5 /* DominosII */ = {
 			isa = PBXGroup;
 			children = (
-				7B0FB720244443750023B0B5 /* Connect.swift */,
-				7BDC769E24448D60005675EA /* Listen.swift */,
 				7BDC76A224459895005675EA /* UDPNetwork.swift */,
 				7BDC76A62445EF90005675EA /* BonjourBrowser.swift */,
 				7BDC76A4244598A7005675EA /* TCPNetwork.swift */,
@@ -168,9 +162,7 @@
 				7BDC76A324459895005675EA /* UDPNetwork.swift in Sources */,
 				7B0FB70F2444423C0023B0B5 /* SceneDelegate.swift in Sources */,
 				7BDC76A72445EF90005675EA /* BonjourBrowser.swift in Sources */,
-				7B0FB721244443750023B0B5 /* Connect.swift in Sources */,
 				7BDC76A5244598A7005675EA /* TCPNetwork.swift in Sources */,
-				7BDC769F24448D60005675EA /* Listen.swift in Sources */,
 				7BDC76A12444B67C005675EA /* Common.swift in Sources */,
 				7B0FB7112444423C0023B0B5 /* ContentView.swift in Sources */,
 			);

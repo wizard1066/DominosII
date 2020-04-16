@@ -9,6 +9,120 @@
 import SwiftUI
 import Combine
 
+enum MyAppPage {
+    case Menu
+    case SecondPage
+}
+
+final class MyAppEnvironmentData: ObservableObject {
+    @Published var currentPage : MyAppPage? = .Menu
+}
+
+struct NavigationTest: View {
+    var body: some View {
+        NavigationView {
+            PageOne()
+        }
+    }
+}
+
+
+struct PageOne: View {
+    @EnvironmentObject var env : MyAppEnvironmentData
+    @ObservedObject var mobile = BonjourBrowser()
+    @State var name: String = ""
+    @State var telegram:String = ""
+    @State var udpCode = UDPNetwork()
+    @State var tcpCode = TCPNetwork()
+    @State var message:String = ""
+    @State var selected = 0
+    @State var startSvr = false
+    @State var searchSvr = false
+    @State var connectSvr = false
+    @State var stopStr = false
+    @State var showingAlert = false
+
+    @State var background = Color.yellow
+    @State var isSelected = false
+    
+    var body: some View {
+        let navlink = NavigationLink(destination: PageTwo(),
+                       tag: .SecondPage,
+                       selection: $env.currentPage,
+                       label: { EmptyView() })
+
+        return VStack {
+            List(mobile.devices, id: \.device) { item in
+              Text(item.device)
+                .onTapGesture {
+                self.name = item.device
+              }
+            }
+            .font(Fonts.avenirNextCondensedBold(size: 16))
+            .frame(width: 256, height: 128, alignment: .center)
+            Text("Dominoes").font(.largeTitle)
+            .padding()
+            .onAppear(perform: {
+              self.udpCode.bonjourUDP(UIDevice.current.name)
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: {
+                self.mobile.seek(typeOf: serviceUDPName)
+              })
+            })
+            .onReceive(resetPublisher) { (_) in
+              self.name = ""
+            }
+            .onReceive(alertPublisher, perform: { (_) in
+              self.showingAlert = true
+            })
+            .alert(isPresented: $showingAlert) {
+              Alert(title: Text("No client selected"), message: Text("Sorry, You need to select a client first"), dismissButton: .default(Text("Try Again!")))
+            }
+
+            navlink
+            .frame(width:0, height:0)
+            
+            EmptyView()
+
+            Button("Play") {
+                self.udpCode.bonjourToUDP(self.name)
+                self.env.currentPage = .SecondPage
+            }
+            .padding()
+            .border(Color.primary)
+
+        }
+    }
+
+}
+
+
+struct PageTwo: View {
+
+    @EnvironmentObject var env : MyAppEnvironmentData
+
+    var body: some View {
+        VStack {
+            Text("Page Two").font(.largeTitle).padding()
+
+            Text("Go Back")
+            .padding()
+            .border(Color.primary)
+            .onTapGesture {
+                
+                self.env.currentPage = .Menu
+            }
+        }.navigationBarBackButtonHidden(true)
+    }
+}
+
+#if DEBUG
+struct NavigationTest_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationTest().environmentObject(MyAppEnvironmentData())
+    }
+}
+#endif
+//
 let talkingPublisher = PassthroughSubject<String, Never>()
 let mobilePublisher = PassthroughSubject<Void, Never>()
 let resetPublisher = PassthroughSubject<Void, Never>()
@@ -34,10 +148,10 @@ struct ContentView: View {
   @State var connectSvr = false
   @State var stopStr = false
   @State var showingAlert = false
-  
+
   @State var background = Color.yellow
   @State var isSelected = false
-  
+
   var body: some View {
     return VStack {
 //      List {
@@ -50,7 +164,7 @@ struct ContentView: View {
 //            }
 //            .font(Fonts.avenirNextCondensedBold(size: 16))
 //            .listRowBackground(isSelected ? Color.yellow: Color.clear)
-    
+
       List(mobile.devices, id: \.device) { item in
           Text(item.device)
             .onTapGesture {
@@ -59,7 +173,7 @@ struct ContentView: View {
       }
        .font(Fonts.avenirNextCondensedBold(size: 16))
        .frame(width: 256, height: 128, alignment: .center)
-      
+
       TextField("sending What ", text: $telegram, onCommit: {
         self.udpCode.send(self.telegram)
 //        self.tcpCode.send(self.telegram)
@@ -80,7 +194,7 @@ struct ContentView: View {
       .alert(isPresented: $showingAlert) {
           Alert(title: Text("No client selected"), message: Text("Sorry, You need to select a client first"), dismissButton: .default(Text("Try Again!")))
         }
-      
+
       Text(message)
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .padding()
@@ -166,7 +280,7 @@ struct ContentView: View {
             .opacity(0.4)
             .frame(width: 48, height: 48, alignment: .center)
             )
-          
+
           Text("disconnect")
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .background(stopStr ? Color.yellow:Color.clear)
