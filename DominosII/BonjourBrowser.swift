@@ -39,6 +39,25 @@ final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
       }
     }
     browser.browseResultsChangedHandler = { ( results, changes ) in
+      for change in changes {
+        if case .added(let added) = change {
+          if case .service(let service) = added.endpoint {
+            let device = objectOf(device: service.name, IsIndexed: self.devices.count)
+            self.devices.append(device)
+          }
+          if case .removed(let removed) = change {
+            if case .service(let service) = removed.endpoint {
+              let index = self.devices.firstIndex(where:{$0.device == service.name })
+              self.devices.remove(at: index!)
+            }
+          }
+        }
+      }
+    }
+    self.browser.start(queue: DispatchQueue.main)
+  }
+}
+
 //      for result in results {
 //        if case .service(let service) = result.endpoint {
 //          print("bonjourA ",service.name)
@@ -46,29 +65,6 @@ final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
 //          self.devices.append(device)
 //        }
 //      }
-      for change in changes {
-        if case .added(let added) = change {
-          if case .service(let service) = added.endpoint {
-            let device = objectOf(device: service.name, IsIndexed: self.devices.count)
-            self.devices.append(device)
-//            mobilePublisher.send()
-          }
-          if case .removed(let removed) = change {
-            if case .service(let service) = removed.endpoint {
-              let index = self.devices.firstIndex(where:{$0.device == service.name })
-              self.devices.remove(at: index!)
-//              mobilePublisher.send()
-            }
-          }
-        }
-        
-        
-      }
-    }
-    self.browser.start(queue: DispatchQueue.main)
-  }
-  
-}
 
 //final class BonjourSearch: NSObject, NetServiceBrowserDelegate, NetServiceDelegate, ObservableObject, Identifiable {
 //

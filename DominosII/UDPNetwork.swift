@@ -190,7 +190,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.talking?.start(queue: .main)
   }
   
-  func send(_ content: String?) {
+  func sendUDP(_ content: String?) {
 //    if udpLink {
 //      specialUDPSend(on: udpConnection!, content: content!)
 //      return

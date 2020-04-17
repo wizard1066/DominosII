@@ -51,7 +51,7 @@ struct PageOne: View {
     @State var udpCode = UDPNetwork()
     @State var tcpCode = TCPNetwork()
     @State var message:String = ""
-    @State var selected = 0
+
     @State var startSvr = false
     @State var searchSvr = false
     @State var connectSvr = false
@@ -105,7 +105,7 @@ struct PageOne: View {
                 self.udpCode.bonjourToUDP(self.name)
                 self.env.currentPage = .SecondPage
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
-                  self.udpCode.send("Hello World")
+                  self.udpCode.sendUDP("Hello World")
                 })
             }
             .padding()
@@ -162,14 +162,14 @@ struct Fonts {
 }
 
 
-struct ContentView: View {
+struct TalkView: View {
   @ObservedObject var mobile = BonjourBrowser()
   @State var name: String = ""
   @State var telegram:String = ""
   @State var udpCode = UDPNetwork()
   @State var tcpCode = TCPNetwork()
   @State var message:String = ""
-  @State var selected = 0
+
   @State var startSvr = false
   @State var searchSvr = false
   @State var connectSvr = false
@@ -181,28 +181,22 @@ struct ContentView: View {
 
   var body: some View {
     return VStack {
-//      List {
-//        ForEach(mobile.devices, id: \.self) { each in
-//                Text(each.device)
-//                .onTapGesture {
-//                  self.name = each.device
-//                  self.isSelected = !self.isSelected
-//          }
-//            }
-//            .font(Fonts.avenirNextCondensedBold(size: 16))
-//            .listRowBackground(isSelected ? Color.yellow: Color.clear)
-
-//      List(mobile.devices, id: \.device) { item in
-//          Text(item.device)
-//            .onTapGesture {
-//            self.name = item.device
-//          }
-//      }
-//       .font(Fonts.avenirNextCondensedBold(size: 16))
-//       .frame(width: 256, height: 128, alignment: .center)
+      List {
+        ForEach(mobile.devices, id: \.self) { each in
+                Text(each.device)
+                .onTapGesture {
+                  self.name = each.device
+                  self.isSelected = !self.isSelected
+          }
+            }
+            .font(Fonts.avenirNextCondensedBold(size: 16))
+            .listRowBackground(isSelected ? Color.yellow: Color.clear)
+        }
+       .font(Fonts.avenirNextCondensedBold(size: 16))
+       .frame(width: 256, height: 128, alignment: .center)
 
       TextField("sending What ", text: $telegram, onCommit: {
-        self.udpCode.send(self.telegram)
+        self.udpCode.sendUDP(self.telegram)
 //        self.tcpCode.send(self.telegram)
 //        self.tcpCode.superTCPSend(content: self.telegram)
       })
@@ -221,7 +215,6 @@ struct ContentView: View {
       .alert(isPresented: $showingAlert) {
           Alert(title: Text("No client selected"), message: Text("Sorry, You need to select a client first"), dismissButton: .default(Text("Try Again!")))
         }
-
       Text(message)
           .font(Fonts.avenirNextCondensedBold(size: 16))
           .padding()
@@ -323,8 +316,15 @@ struct ContentView: View {
 }
 
 
-struct ContentView_Previews: PreviewProvider {
+struct TalkView_Previews: PreviewProvider {
   static var previews: some View {
-    ContentView()
+    TalkView()
   }
 }
+
+//      List(mobile.devices, id: \.device) { item in
+//          Text(item.device)
+//            .onTapGesture {
+//            self.name = item.device
+//          }
+//      }

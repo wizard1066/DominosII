@@ -168,11 +168,7 @@ class TCPNetwork: NSObject {
     }
   }
   
-
-  
-
-  
-  func send(_ content: String?) {
+  func sendTCP(_ content: String?) {
     if tcpLink {
       specialTCPSend(on: tcpConnection!, content: content!)
       return
