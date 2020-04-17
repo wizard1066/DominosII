@@ -14,6 +14,22 @@ enum MyAppPage {
     case SecondPage
 }
 
+struct ListView: View {
+    @Binding var name:String
+    @State var device: String
+    @State var isSelected: Bool
+    
+var body: some View {
+    Text(device)
+            .listRowBackground(self.isSelected ? Color.yellow: Color.clear)
+            .onTapGesture {
+              self.name = self.device
+              self.isSelected = !self.isSelected
+            }
+}
+}
+
+
 final class MyAppEnvironmentData: ObservableObject {
     @Published var currentPage : MyAppPage? = .Menu
 }
@@ -43,7 +59,10 @@ struct PageOne: View {
     @State var showingAlert = false
 
     @State var background = Color.yellow
-    @State var isSelected = false
+    // maximum 32 players in the room
+    @State var isSelected = [Bool](repeating: false, count: 32)
+    @State var index = 0
+    
     
     var body: some View {
         let navlink = NavigationLink(destination: PageTwo(),
@@ -52,11 +71,10 @@ struct PageOne: View {
                        label: { EmptyView() })
 
         return VStack {
-            List(mobile.devices, id: \.device) { item in
-              Text(item.device)
-                .onTapGesture {
-                self.name = item.device
-              }
+                  List {
+                  ForEach(mobile.devices, id: \.self) { each in
+                    ListView(name: self.$name, device: each.device, isSelected: false)
+                  }
             }
             .font(Fonts.avenirNextCondensedBold(size: 16))
             .frame(width: 256, height: 128, alignment: .center)
@@ -64,7 +82,7 @@ struct PageOne: View {
             .padding()
             .onAppear(perform: {
               self.udpCode.bonjourUDP(UIDevice.current.name)
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: {
+              DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
                 self.mobile.seek(typeOf: serviceUDPName)
               })
             })
@@ -86,6 +104,9 @@ struct PageOne: View {
             Button("Play") {
                 self.udpCode.bonjourToUDP(self.name)
                 self.env.currentPage = .SecondPage
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                  self.udpCode.send("Hello World")
+                })
             }
             .padding()
             .border(Color.primary)
@@ -97,12 +118,18 @@ struct PageOne: View {
 
 
 struct PageTwo: View {
-
+    @State var message: String = "Phew"
     @EnvironmentObject var env : MyAppEnvironmentData
 
     var body: some View {
         VStack {
             Text("Page Two").font(.largeTitle).padding()
+            Text(message)
+          .font(Fonts.avenirNextCondensedBold(size: 16))
+          .padding()
+          .onReceive(talkingPublisher) { ( data ) in
+            self.message = "received " + data
+          }
 
             Text("Go Back")
             .padding()
@@ -165,14 +192,14 @@ struct ContentView: View {
 //            .font(Fonts.avenirNextCondensedBold(size: 16))
 //            .listRowBackground(isSelected ? Color.yellow: Color.clear)
 
-      List(mobile.devices, id: \.device) { item in
-          Text(item.device)
-            .onTapGesture {
-            self.name = item.device
-          }
-      }
-       .font(Fonts.avenirNextCondensedBold(size: 16))
-       .frame(width: 256, height: 128, alignment: .center)
+//      List(mobile.devices, id: \.device) { item in
+//          Text(item.device)
+//            .onTapGesture {
+//            self.name = item.device
+//          }
+//      }
+//       .font(Fonts.avenirNextCondensedBold(size: 16))
+//       .frame(width: 256, height: 128, alignment: .center)
 
       TextField("sending What ", text: $telegram, onCommit: {
         self.udpCode.send(self.telegram)

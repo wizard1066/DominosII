@@ -174,6 +174,10 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   }
   
     func bonjourToUDP(_ called:String) {
+    if called.isEmpty {
+      alertPublisher.send()
+      return
+    }
     self.talking = NWConnection(to: .service(name: called, type: serviceUDPName, domain: "local", interface: nil), using: .udp)
     self.talking?.stateUpdateHandler = { (newState) in
       switch (newState) {

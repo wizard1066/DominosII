@@ -15,6 +15,7 @@ final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
   struct objectOf:Hashable {
     var id:UUID? = UUID()
     var device:String = ""
+    var IsIndexed:Int = 0
   }
   
   @Published var devices: [objectOf] = [] {
@@ -48,7 +49,7 @@ final class BonjourBrowser: NSObject, ObservableObject, Identifiable {
       for change in changes {
         if case .added(let added) = change {
           if case .service(let service) = added.endpoint {
-            let device = objectOf(device: service.name)
+            let device = objectOf(device: service.name, IsIndexed: self.devices.count)
             self.devices.append(device)
 //            mobilePublisher.send()
           }
