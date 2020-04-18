@@ -9,7 +9,7 @@
 import UIKit
 import Combine
 
-var udpProcess = UDPNetwork()
+//var udpProcess = UDPNetwork()
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {

@@ -35,7 +35,8 @@ var firstRun = true
 final class MyAppEnvironmentData: ObservableObject {
   @Published var currentPage : MyAppPage? = .Menu
   @Published var currentClient: String = ""
-  @Published var udpCode = udpProcess
+//  @Published var udpCode = udpProcess
+  @Published var udpCode = UDPNetwork()
 //  @Published var tcpCode = TCPNetwork()
 }
 

@@ -141,8 +141,8 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
         }
         
         }
-        if connection.state == .ready && isComplete == false && recursive {
-          self.receive8192(on: connection, recursive: true)
+        if connection.state == .ready && isComplete == true && recursive {
+          self.receive(on: connection, recursive: true)
         }
       }
   }
@@ -165,6 +165,12 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
               nextPagePublisher.send(clientName)
           }
           if backToString.contains("@DominoesSet:") {
+            let dominoPairs = backToString.replacingOccurrences(of: "@DominoesSet:", with: "").dropFirst().dropLast().replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: " ", with: "")
+            redoDominoes.send(String(dominoPairs))
+            let pairs = dominoPairs.split(separator: ",")
+            for pair in pairs {
+              print("DominoesSet ",pair)
+            }
             print("DominoesSet ",backToString)
           }
 //          talkingPublisher.send("ok")

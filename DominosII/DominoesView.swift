@@ -11,6 +11,7 @@ import Combine
 
 let rotateDominoPublisher = PassthroughSubject<(Int,Double), Never>()
 let flipDominoPublisher = PassthroughSubject<(Int,Double), Never>()
+let redoDominoes = PassthroughSubject<String, Never>()
 //let resetPublisher = PassthroughSubject<Void, Never>()
 
 
@@ -87,10 +88,13 @@ struct PageTwo: View {
             if prime {
               DispatchQueue.main.asyncAfter(deadline: .now() + Double(4)) {
                 debugPrint("Sending DominoesSet ",tiles.description)
+                
                 self.env.udpCode.sendUDP("@DominoesSet:" + tiles.description)
               }
               //              //                self.novelleViews.nouViews = allocateImagesV()
             }
+          }.onReceive(redoDominoes) { ( data ) in
+              (self.novelleViews.nouViews, tiles) = redoImages(tileString: data)
           }
         }
         HStack {
@@ -397,6 +401,23 @@ func allocateImagesV() -> ([newView],Set<String>) {
     answer.append(tileView)
   }
   return (answer,tiles)
+}
+
+func redoImages(tileString: String) -> ([newView],Set<String>) {
+  var answer:[newView] = []
+  let tiles = tileString.split(separator: ",")
+  for tile in tiles {
+    var highImage:String!
+    var lowImage:String!
+    let images = tile.split(separator: ":").map(String.init)
+    if images != [] {
+      highImage = images[0]
+      lowImage = images[1]
+    }
+    let tileView = newView(highImage: highImage, lowImage: lowImage)
+    answer.append(tileView)
+  }
+  return (answer,[])
 }
 
   
