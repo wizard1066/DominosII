@@ -53,7 +53,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           switch newState {
           case .ready:
             print("new UDP connection")
-            self.receive(on: newConnection, recursive: true)
+            self.receive8192(on: newConnection, recursive: true)
           default:
             break
           }
@@ -120,7 +120,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
 //  }
   
   func receive(on connection: NWConnection, recursive: Bool) {
-      print("listening")
+      print("listeningX")
       connection.receiveMessage { (data, context, isComplete, error) in
         if let error = error {
           print(error)
@@ -129,30 +129,52 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
         if let content = data, !content.isEmpty {
           DispatchQueue.main.async {
           let backToString = String(decoding: content, as: UTF8.self)
-          talkingPublisher.send(backToString + " UDP")
+          print("backTOString ",backToString)
+//          if backToString.contains("@ComePlay:") {
+//            let clientName = backToString.replacingOccurrences(of: "@ComePlay:", with: "")
+//            nextPagePublisher.send(clientName)
+//          }
+//          if backToString.contains("@DominoesSet:") {
+//            print("DominoesSet ",backToString)
+//          }
+//          talkingPublisher.send("ok")
         }
         
         }
         if connection.state == .ready && isComplete == false && recursive {
-          self.receive(on: connection, recursive: true)
+          self.receive8192(on: connection, recursive: true)
         }
       }
   }
   
   // 8192 is the maximum number of fragments for an IPv4 datagram or UDP packet
   
+
+  
   func receive8192(on connection: NWConnection, recursive: Bool) {
     connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { (data, context, isComplete, error) in
-//        debugPrint("\(Date()) TcpReader: got a message \(String(describing: content?.count)) bytes")
+      
+        debugPrint("\(Date()) TcpReader: got a message \(String(describing: data?.count)) bytes")
         if let content = data {
             DispatchQueue.main.async {
           let backToString = String(decoding: content, as: UTF8.self)
-          talkingPublisher.send(backToString + " UDP")
+          debugPrint("receive8192 ",backToString)
+//          talkingPublisher.send(backToString + " UDP")
+          if backToString.contains("@ComePlay:") {
+            let clientName = backToString.replacingOccurrences(of: "@ComePlay:", with: "")
+              nextPagePublisher.send(clientName)
+          }
+          if backToString.contains("@DominoesSet:") {
+            print("DominoesSet ",backToString)
+          }
+//          talkingPublisher.send("ok")
         }
 //        self.udpLink = true
 //        self.udpConnection = connection
         }
-        if connection.state == .ready && isComplete == false && recursive {
+        print("connection.state",connection.state,"isComplete",isComplete,"recursive",recursive)
+        if connection.state == .ready && isComplete == true && recursive {
+          print("re-running")
           self.receive8192(on: connection, recursive: true)
         }
     }

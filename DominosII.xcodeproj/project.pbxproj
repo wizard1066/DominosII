@@ -13,6 +13,7 @@
 		7B0FB713244442430023B0B5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB712244442430023B0B5 /* Assets.xcassets */; };
 		7B0FB716244442430023B0B5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB715244442430023B0B5 /* Preview Assets.xcassets */; };
 		7B0FB719244442430023B0B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7B0FB717244442430023B0B5 /* LaunchScreen.storyboard */; };
+		7B5CD9C9244B1810001F17AA /* DominoesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5CD9C8244B1810001F17AA /* DominoesView.swift */; };
 		7BDC76A12444B67C005675EA /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A02444B67C005675EA /* Common.swift */; };
 		7BDC76A324459895005675EA /* UDPNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A224459895005675EA /* UDPNetwork.swift */; };
 		7BDC76A5244598A7005675EA /* TCPNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC76A4244598A7005675EA /* TCPNetwork.swift */; };
@@ -28,6 +29,7 @@
 		7B0FB715244442430023B0B5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		7B0FB718244442430023B0B5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7B0FB71A244442430023B0B5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7B5CD9C8244B1810001F17AA /* DominoesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DominoesView.swift; sourceTree = "<group>"; };
 		7BDC76A02444B67C005675EA /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		7BDC76A224459895005675EA /* UDPNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPNetwork.swift; sourceTree = "<group>"; };
 		7BDC76A4244598A7005675EA /* TCPNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCPNetwork.swift; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 				7B0FB70C2444423C0023B0B5 /* AppDelegate.swift */,
 				7B0FB70E2444423C0023B0B5 /* SceneDelegate.swift */,
 				7B0FB7102444423C0023B0B5 /* ContentView.swift */,
+				7B5CD9C8244B1810001F17AA /* DominoesView.swift */,
 				7B0FB712244442430023B0B5 /* Assets.xcassets */,
 				7B0FB717244442430023B0B5 /* LaunchScreen.storyboard */,
 				7B0FB71A244442430023B0B5 /* Info.plist */,
@@ -164,6 +167,7 @@
 				7BDC76A72445EF90005675EA /* BonjourBrowser.swift in Sources */,
 				7BDC76A5244598A7005675EA /* TCPNetwork.swift in Sources */,
 				7BDC76A12444B67C005675EA /* Common.swift in Sources */,
+				7B5CD9C9244B1810001F17AA /* DominoesView.swift in Sources */,
 				7B0FB7112444423C0023B0B5 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
