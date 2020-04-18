@@ -165,7 +165,8 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
               nextPagePublisher.send(clientName)
           }
           if backToString.contains("@DominoesSet:") {
-            let dominoPairs = backToString.replacingOccurrences(of: "@DominoesSet:", with: "").dropFirst().dropLast().replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: " ", with: "")
+            let dominoPairs = backToString.replacingOccurrences(of: "@DominoesSet:", with: "")
+//            .dropFirst().dropLast().replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: " ", with: "")
             redoDominoes.send(String(dominoPairs))
             let pairs = dominoPairs.split(separator: ",")
             for pair in pairs {

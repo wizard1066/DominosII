@@ -87,9 +87,10 @@ struct PageTwo: View {
             // emulate network code
             if prime {
               DispatchQueue.main.asyncAfter(deadline: .now() + Double(4)) {
-                debugPrint("Sending DominoesSet ",tiles.description)
                 
-                self.env.udpCode.sendUDP("@DominoesSet:" + tiles.description)
+                let string2send = tiles.joined(separator: ",")
+                debugPrint("Sending DominoesSet ",string2send)
+                self.env.udpCode.sendUDP("@DominoesSet:" + string2send)
               }
               //              //                self.novelleViews.nouViews = allocateImagesV()
             }
@@ -209,7 +210,6 @@ struct DominoWrapper: View {
         let (domino,direction) = tupple
         if domino == self.$column.wrappedValue {
           self.newAngle += direction
-          print("fuck ",self.newAngle )
         }
       }
       .opacity(hideBack ? 0.3:1)
