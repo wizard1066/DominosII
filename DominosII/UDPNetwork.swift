@@ -130,14 +130,6 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           DispatchQueue.main.async {
           let backToString = String(decoding: content, as: UTF8.self)
           print("backTOString ",backToString)
-//          if backToString.contains("@ComePlay:") {
-//            let clientName = backToString.replacingOccurrences(of: "@ComePlay:", with: "")
-//            nextPagePublisher.send(clientName)
-//          }
-//          if backToString.contains("@DominoesSet:") {
-//            print("DominoesSet ",backToString)
-//          }
-//          talkingPublisher.send("ok")
         }
         
         }
@@ -161,8 +153,11 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           debugPrint("receive8192 ",backToString)
 //          talkingPublisher.send(backToString + " UDP")
           if backToString.contains("@ComePlay:") {
+            player = MaPlayers.deux
             let clientName = backToString.replacingOccurrences(of: "@ComePlay:", with: "")
-              nextPagePublisher.send(clientName)
+            // connect to the UDP server with the other player
+            self.bonjourToUDP(clientName)
+            nextPagePublisher.send(clientName)
           }
           if backToString.contains("@DominoesSet:") {
             let dominoPairs = backToString.replacingOccurrences(of: "@DominoesSet:", with: "")
@@ -174,6 +169,26 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
             }
             print("DominoesSet ",backToString)
           }
+          if backToString.contains("@YourTurn:") {
+            turn = player
+            turnPublisher.send()
+          }
+              if backToString.contains("@DominoMove:") {
+                let dominoMove = backToString.replacingOccurrences(of: "@DominoMove:", with: "")
+                let jsonData = dominoMove.data(using: .utf8)!
+                do {
+                  let jsonDecoder = JSONDecoder()
+                  let dominoMove = try jsonDecoder.decode(moverNshaker.self, from: jsonData)
+                  movePublisher.send(dominoMove)
+                } catch {
+                  print("Unexpected error: \(error).")
+                }
+                print("DominoMove ",dominoMove)
+              }
+              if backToString.contains("@DominoRotate:") {
+                let dominoRotate = backToString.replacingOccurrences(of: "@DominoMove:", with: "")
+                print("dominoRotate ",dominoRotate)
+              }
 //          talkingPublisher.send("ok")
         }
 //        self.udpLink = true
@@ -186,6 +201,8 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
         }
     }
   }
+  
+  var dominoMove = moverNshaker()
   
   func connectToUDP(host:String,port:String) {
     let hostUDP = NWEndpoint.Host.init(host)

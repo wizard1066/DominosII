@@ -14,6 +14,13 @@ enum MyAppPage {
   case SecondPage
 }
 
+enum MaPlayers {
+  case uno
+  case deux
+  case drei
+  case four
+}
+
 struct ListView: View {
   @Binding var name:String
   @State var device: String
@@ -121,6 +128,7 @@ struct PageOne: View {
       
       Button("Play") {
         prime = true
+        player = MaPlayers.uno
         self.env.udpCode.bonjourToUDP(self.name)
         self.env.currentClient = self.name
         self.env.currentPage = .SecondPage

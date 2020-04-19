@@ -12,8 +12,8 @@ import Combine
 let rotateDominoPublisher = PassthroughSubject<(Int,Double), Never>()
 let flipDominoPublisher = PassthroughSubject<(Int,Double), Never>()
 let redoDominoes = PassthroughSubject<String, Never>()
-//let resetPublisher = PassthroughSubject<Void, Never>()
-
+let turnPublisher = PassthroughSubject<Void, Never>()
+let movePublisher = PassthroughSubject<moverNshaker, Never>()
 
 struct newView:Identifiable {
   var id:UUID? = UUID()
@@ -24,6 +24,8 @@ struct newView:Identifiable {
 }
 
 var tiles:Set<String> = []
+var player:MaPlayers!
+var turn:MaPlayers = MaPlayers.uno
 
 class newViews: ObservableObject {
   @Published var nouViews: [newView] {
@@ -35,13 +37,15 @@ class newViews: ObservableObject {
   
   init() {
     (self.nouViews,tiles) = allocateImagesV()
-    if prime {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
-//          self.udpCode.sendUDP("@DominoesSet:" + UIDevice.current.name)
-      })
-    }
+//    if prime {
+//      DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+////          self.udpCode.sendUDP("@DominoesSet:" + UIDevice.current.name)
+//      })
+//    }
   }
 }
+
+
 
 struct PageTwo: View {
   @EnvironmentObject var env : MyAppEnvironmentData
@@ -52,7 +56,7 @@ struct PageTwo: View {
   @State var accumulated = CGSize.zero
   @State private var rect:[CGRect] = []
 //  @State private var tiles:Int = 0
-  
+  @State var colorTurn = false
   
   var body: some View {
     let screenSize = UIScreen.main.bounds
@@ -60,15 +64,20 @@ struct PageTwo: View {
     let screenHeight = screenSize.height
     return VStack {
       VStack {
-        Text("Debug").onTapGesture {
-            print("sending fooBar",self.env.currentClient)
-            self.env.udpCode.sendUDP("fooBar")
-        }
-//        Text("Back").onTapGesture {
-//            self.env.currentPage = .Menu
-//        }
-        
         VStack {
+          Text("Make Move")
+          .foregroundColor(Color.white)
+          .background(colorTurn ? Color.green: Color.red)
+          .onTapGesture {
+            print("sending fooBar",self.env.currentClient)
+            self.env.udpCode.sendUDP("@YourTurn:")
+            self.colorTurn = false
+        }
+        .onReceive(turnPublisher) { (_) in
+            self.colorTurn = true
+        }
+        .font(.subheadline)
+        .frame(width: 128, height: 32, alignment: .center)
           ZStack {
             Rectangle()
               .fill(Color.yellow)
@@ -96,6 +105,7 @@ struct PageTwo: View {
             }
           }.onReceive(redoDominoes) { ( data ) in
               (self.novelleViews.nouViews, tiles) = redoImages(tileString: data)
+              turnPublisher.send()
           }
         }
         HStack {
@@ -116,6 +126,7 @@ struct PageTwo: View {
 //            self.fudgeOffset = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
             self.fudgeOffset = CGSize(width: value.translation.width + self.accumulated.width, height: 0)
             self.accumulated = self.fudgeOffset
+            
           }
       ) // VStack
     }
@@ -182,8 +193,15 @@ struct InsideView: View {
   }
 }
 
+struct moverNshaker: Encodable, Decodable {
+  var dragID: Int!
+  var dragOffset: CGSize!
+  var dragAccumulated: CGSize!
+}
+
 struct DominoWrapper: View {
   @ObservedObject var novelleViews:newViews
+  @EnvironmentObject var env : MyAppEnvironmentData
   @State var column:Int
   @State var dragOffset = CGSize.zero
   @State var accumulated = CGSize.zero
@@ -194,11 +212,14 @@ struct DominoWrapper: View {
   @State var hideBack = false
   @State var spin:Double = 0
   @State var xpin:Double = -180
+  @State var owner:MaPlayers? = nil
+//  @Binding var rotateAngle:Double
   
   var body: some View {
     
     return ZStack {
       Back(column: $column).onTapGesture {
+        self.owner = player
         withAnimation(Animation.linear(duration: 2.0).delay(0)) {
           self.spin = 180
         }
@@ -234,21 +255,47 @@ struct DominoWrapper: View {
         .onEnded { ( value ) in
           self.dragOffset = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
           self.accumulated = self.dragOffset
+          
+          let dragX = moverNshaker(dragID: self.column, dragOffset: self.dragOffset, dragAccumulated: self.accumulated)
+          let jsonEncoder = JSONEncoder()
+          do {
+            let jsonData = try jsonEncoder.encode(dragX)
+            let jsonString = String(data: jsonData, encoding: .utf8)
+            self.env.udpCode.sendUDP("@DominoMove:" + jsonString!)
+          } catch {
+            print("FooBar")
+          }
         }
-    ).onReceive(resetPublisher) { (_) in
+    ).onReceive(movePublisher, perform: { ( cords ) in
+      print("spooky ",cords.dragID)
+      if cords.dragID == self.column {
+        withAnimation {
+          self.dragOffset = cords.dragOffset
+          self.accumulated = cords.dragAccumulated
+        }
+      }
+    })
+    .onReceive(resetPublisher) { (_) in
         self.dragOffset.width = CGFloat(0)
         self.dragOffset.height = CGFloat(0)
         self.accumulated = CGSize.zero
         self.newAngle = 0
+        self.owner = nil
       }
   }
 }
 
 struct DoDomino: View {
+  @EnvironmentObject var env : MyAppEnvironmentData
   @State var column:Int
   @State var dragOffset = CGSize.zero
   @State var accumulated = CGSize.zero
-  @State var rotateAngle:Double = 0
+  @State var rotateAngle:Double = 0 {
+    didSet {
+      let d2S = String(rotateAngle) + ":" + String(column)
+      env.udpCode.sendUDP("@DominoRotate:" + d2S)
+    }
+  }
   @State var highImage:String
   @State var lowImage:String
   @State var flipper:Double = 0
