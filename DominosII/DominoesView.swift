@@ -54,7 +54,8 @@ struct PageTwo: View {
   @State var fudgeOffset = CGSize.zero
   @State var accumulated = CGSize.zero
   @State private var rect:[CGRect] = []
-  @State var colorTurn = false
+  @State var colorTurn = true
+  @State var turns:String = "My Move"
   
   var body: some View {
     let screenSize = UIScreen.main.bounds
@@ -63,19 +64,21 @@ struct PageTwo: View {
     return VStack {
       VStack {
         VStack {
-          Text("My Move")
+          Text(self.turns)
           .foregroundColor(Color.white)
           .background(colorTurn ? Color.red: Color.green)
           .onTapGesture {
             print("sending fooBar",self.env.currentClient)
             self.env.udpCode.sendUDP("@YourTurn:")
-            self.colorTurn = false
+            self.colorTurn = true
+            self.turns = "Their Turn"
         }
         .onReceive(turnPublisher) { (_) in
-            self.colorTurn = true
+            self.colorTurn = false
+            self.turns = "Your Turn"
         }
-        .font(.subheadline)
-        .frame(width: 128, height: 32, alignment: .center)
+        .font(Fonts.avenirNextCondensedBold(size: 16))
+        .frame(width: UIScreen.main.bounds.width, height: 32, alignment: .center)
           ZStack {
             Rectangle()
               .fill(Color.yellow)
@@ -108,7 +111,7 @@ struct PageTwo: View {
         HStack {
           ForEach((0 ..< 25), id: \.self) { column in
 //          ForEach((0 ..< 3), id: \.self) { column in
-            DominoWrapper(novelleViews: self.novelleViews, column: column)
+            DominoWrapper(novelleViews: self.novelleViews, column: column, turns: self.$turns)
               .offset(self.novelleViews.nouViews[column].offset)
           }
         }
@@ -173,6 +176,7 @@ struct DominoWrapper: View {
   @State var spin:Double = 0
   @State var xpin:Double = -180
   @State var owner:MaPlayers? = nil
+  @Binding var turns:String
   
   var body: some View {
     
@@ -226,6 +230,7 @@ struct DominoWrapper: View {
           self.dragOffset = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
         })
         .onEnded { ( value ) in
+        self.turns = "Press Me When Finished"
           self.dragOffset = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
           self.accumulated = self.dragOffset
           
