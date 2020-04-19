@@ -96,29 +96,6 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.listening?.start(queue: .main)
   }
   
-  //  var udpLink = false
-  //  var udpConnection: NWConnection?
-  //
-  //  func resetUDPLink() {
-  //    udpLink = false
-  //    udpConnection = nil
-  //  }
-  
-  
-  
-  //  func specialUDPSend(on connection: NWConnection, content:String) {
-  //    let contentToSendUDP = content.data(using: String.Encoding.utf8)
-  //      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
-  //      if (NWError == nil) {
-  //        // This is pickup any immediate response
-  //        self.receive(on: connection, recursive: false)
-  //      } else {
-  //        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
-  //      }
-  //    })))
-  //    connection.start(queue: .main)
-  //  }
-  
   func receive(on connection: NWConnection, recursive: Bool) {
     print("listeningX")
     connection.receiveMessage { (data, context, isComplete, error) in
@@ -199,6 +176,10 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
               rotateDominoPublisher.send((piece,90))
             }
           }
+          if backToString.contains("@DominoFlip:") {
+            let dominoFlip = backToString.replacingOccurrences(of: "@DominoFlip:", with: "")
+            flipPublisher.send(Double(dominoFlip)!)
+          }
         }
       }
       print("connection.state",connection.state,"isComplete",isComplete,"recursive",recursive)
@@ -244,10 +225,6 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   }
   
   func sendUDP(_ content: String?) {
-    //    if udpLink {
-    //      specialUDPSend(on: udpConnection!, content: content!)
-    //      return
-    //    }
     let contentToSendUDP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {

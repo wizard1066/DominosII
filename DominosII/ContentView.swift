@@ -42,9 +42,7 @@ var firstRun = true
 final class MyAppEnvironmentData: ObservableObject {
   @Published var currentPage : MyAppPage? = .Menu
   @Published var currentClient: String = ""
-//  @Published var udpCode = udpProcess
   @Published var udpCode = UDPNetwork()
-//  @Published var tcpCode = TCPNetwork()
 }
 
 struct NavigationTest: View {
@@ -61,8 +59,6 @@ struct PageOne: View {
   @ObservedObject var mobile = BonjourBrowser()
   @State var name: String = ""
   @State var telegram:String = ""
-//  @State var udpCode = UDPNetwork()
-//  @State var tcpCode = TCPNetwork()
   @State var message:String = ""
   
   @State var startSvr = false
@@ -96,7 +92,6 @@ struct PageOne: View {
         .onAppear(perform: {
           if firstRun {
             firstRun = false
-//          let queue = DispatchQueue(label: "foo", qos: .utility, attributes: .concurrent)
           DispatchQueue.main.async {
             self.env.udpCode.bonjourUDP(UIDevice.current.name)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
@@ -115,7 +110,6 @@ struct PageOne: View {
         .alert(isPresented: $showingAlert) {
           Alert(title: Text("No client selected"), message: Text("Sorry, You need to select a client first"), dismissButton: .default(Text("Try Again!")))
       }.onReceive(nextPagePublisher) { ( clientName ) in
-//        self.udpCode.bonjourToUDP(clientName)
         self.env.currentClient = clientName
         self.env.currentPage = .SecondPage
         prime = false
@@ -143,32 +137,6 @@ struct PageOne: View {
   }
   
 }
-
-
-//struct PageTwo: View {
-//  @State var message: String = "Phew"
-//  @EnvironmentObject var env : MyAppEnvironmentData
-//
-//  var body: some View {
-//    VStack {
-//      Text("Page Two").font(.largeTitle).padding()
-//      Text(message)
-//        .font(Fonts.avenirNextCondensedBold(size: 16))
-//        .padding()
-//        .onReceive(talkingPublisher) { ( data ) in
-//          self.message = "received " + data
-//      }
-//
-//      Text("Go Back")
-//        .padding()
-//        .border(Color.primary)
-//        .onTapGesture {
-//
-//          self.env.currentPage = .Menu
-//      }
-//    }.navigationBarBackButtonHidden(true)
-//  }
-//}
 
 #if DEBUG
 struct NavigationTest_Previews: PreviewProvider {
@@ -355,3 +323,28 @@ struct DominoesView_Previews: PreviewProvider {
     TalkView()
   }
 }
+
+//struct PageTwo: View {
+//  @State var message: String = "Phew"
+//  @EnvironmentObject var env : MyAppEnvironmentData
+//
+//  var body: some View {
+//    VStack {
+//      Text("Page Two").font(.largeTitle).padding()
+//      Text(message)
+//        .font(Fonts.avenirNextCondensedBold(size: 16))
+//        .padding()
+//        .onReceive(talkingPublisher) { ( data ) in
+//          self.message = "received " + data
+//      }
+//
+//      Text("Go Back")
+//        .padding()
+//        .border(Color.primary)
+//        .onTapGesture {
+//
+//          self.env.currentPage = .Menu
+//      }
+//    }.navigationBarBackButtonHidden(true)
+//  }
+//}

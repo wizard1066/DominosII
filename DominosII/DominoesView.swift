@@ -15,6 +15,9 @@ let redoDominoes = PassthroughSubject<String, Never>()
 let turnPublisher = PassthroughSubject<Void, Never>()
 let movePublisher = PassthroughSubject<moverNshaker, Never>()
 let rotatePublisher = PassthroughSubject<(Int, Double, Double), Never>()
+let hideBackPublisher = PassthroughSubject<Int, Never>()
+let flipPublisher = PassthroughSubject<Double, Never>()
+let autoTurnPublisher = PassthroughSubject<Int, Never>()
 
 struct newView:Identifiable {
   var id:UUID? = UUID()
@@ -38,11 +41,6 @@ class newViews: ObservableObject {
   
   init() {
     (self.nouViews,tiles) = allocateImagesV()
-//    if prime {
-//      DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
-////          self.udpCode.sendUDP("@DominoesSet:" + UIDevice.current.name)
-//      })
-//    }
   }
 }
 
@@ -56,7 +54,6 @@ struct PageTwo: View {
   @State var fudgeOffset = CGSize.zero
   @State var accumulated = CGSize.zero
   @State private var rect:[CGRect] = []
-//  @State private var tiles:Int = 0
   @State var colorTurn = false
   
   var body: some View {
@@ -66,9 +63,9 @@ struct PageTwo: View {
     return VStack {
       VStack {
         VStack {
-          Text("Make Move")
+          Text("My Move")
           .foregroundColor(Color.white)
-          .background(colorTurn ? Color.green: Color.red)
+          .background(colorTurn ? Color.red: Color.green)
           .onTapGesture {
             print("sending fooBar",self.env.currentClient)
             self.env.udpCode.sendUDP("@YourTurn:")
@@ -102,7 +99,6 @@ struct PageTwo: View {
                 debugPrint("Sending DominoesSet ",string2send)
                 self.env.udpCode.sendUDP("@DominoesSet:" + string2send)
               }
-              //              //                self.novelleViews.nouViews = allocateImagesV()
             }
           }.onReceive(redoDominoes) { ( data ) in
               (self.novelleViews.nouViews, tiles) = redoImages(tileString: data)
@@ -110,8 +106,8 @@ struct PageTwo: View {
           }
         }
         HStack {
-//          ForEach((0 ..< 25), id: \.self) { column in
-          ForEach((0 ..< 3), id: \.self) { column in
+          ForEach((0 ..< 25), id: \.self) { column in
+//          ForEach((0 ..< 3), id: \.self) { column in
             DominoWrapper(novelleViews: self.novelleViews, column: column)
               .offset(self.novelleViews.nouViews[column].offset)
           }
@@ -131,45 +127,10 @@ struct PageTwo: View {
           }
       ) // VStack
     }
-//    .onReceive(resetPublisher) { (_) in
-//      self.novelleViews.nouViews = allocateImagesV()
-//    }.onReceive(setTilesPublisher) { ( figure ) in
-//      self.tiles = figure
-//    }
   }
 }
 
-//struct ContentView: View {
-//  var body: some View {
-//    let screenSize = UIScreen.main.bounds
-//    let screenWidth = screenSize.width
-//    let screenHeight = screenSize.height
-//    return ScrollView(Axis.Set.horizontal, showsIndicators: true) {
-//      VStack {
-//        ZStack {
-//          Rectangle()
-//            .fill(Color.yellow)
-//            .frame(minWidth: screenWidth * 1.5, maxHeight: screenHeight * 0.6)
-//          ZStack {
-//          Text("Dominos with")
-//            .font(Fonts.zapfino(size: 56))
-//            .opacity(0.5)
-//            .offset(CGSize(width: 0, height: -60))
-//          Text("Better Programming")
-//            .font(Fonts.zapfino(size: 56))
-//            .opacity(0.5)
-//            .offset(CGSize(width: 0, height: 40))
-//          }.padding()
-//        }
-//        HStack {
-//          DominoWrapper(highImage: "Image-1", lowImage: "Image-12")
-//          DominoWrapper(highImage: "Image-2", lowImage: "Image-13")
-//          DominoWrapper(highImage: "Image-3", lowImage: "Image-14")
-//        }.padding()
-//      }
-//    }
-//  }
-//}
+
     
 var runOnce = true
 
@@ -207,19 +168,22 @@ struct DominoWrapper: View {
   @State var dragOffset = CGSize.zero
   @State var accumulated = CGSize.zero
   @State var newAngle:Double = 0
-//  @State var highImage:String = ""
-//  @State var lowImage:String = ""
   
   @State var hideBack = false
   @State var spin:Double = 0
   @State var xpin:Double = -180
   @State var owner:MaPlayers? = nil
-//  @Binding var rotateAngle:Double
   
   var body: some View {
     
     return ZStack {
-      Back(column: $column).onTapGesture {
+      Back(column: $column)
+      .onReceive(hideBackPublisher, perform: { ( domino ) in
+        if domino == self.$column.wrappedValue {
+          self.hideBack = true
+        }
+      })
+      .onTapGesture {
         self.owner = player
         withAnimation(Animation.linear(duration: 2.0).delay(0)) {
           self.spin = 180
@@ -235,7 +199,14 @@ struct DominoWrapper: View {
           
         }
       }
-      .opacity(hideBack ? 0.3:1)
+      .opacity(hideBack ? 0:1)
+      .onReceive(autoTurnPublisher) { ( domino ) in
+        if domino == self.$column.wrappedValue {
+          withAnimation(Animation.linear(duration: 2.0).delay(0)) {
+          self.spin = 180
+        }
+        }
+      }
       
       
       if self.spin == 180 {
@@ -269,8 +240,8 @@ struct DominoWrapper: View {
           }
         }
     ).onReceive(movePublisher, perform: { ( cords ) in
-      print("spooky ",cords.dragID)
       if cords.dragID == self.column {
+        autoTurnPublisher.send(self.column)
         withAnimation {
           self.dragOffset = cords.dragOffset
           self.accumulated = cords.dragAccumulated
@@ -300,7 +271,8 @@ struct DoDomino: View {
   var body: some View {
     Domino(highImage: $highImage, lowImage: $lowImage, flipper: $flipper, index: $column)
       .onReceive(rotatePublisher, perform: { ( data ) in
-        let (col,ang, flip) = data
+        hideBackPublisher.send(self.column)
+        let (_,ang, flip) = data
         self.rotateAngle = ang
         self.flipper = flip
       })
@@ -309,14 +281,13 @@ struct DoDomino: View {
       .gesture(LongPressGesture()
         .onEnded({ (_) in
           withAnimation {
+            hideBackPublisher.send(self.column)
             if self.rotateAngle < 360 {
               self.rotateAngle += 90
               self.flipper -= 90
-              rotateDominoPublisher.send((self.column,90))
               self.env.udpCode.sendUDP("@DominoRotate:" + String(self.column) + ":" + String(self.rotateAngle) + ":" + String(self.flipper))
             } else {
               self.rotateAngle = 0
-              rotateDominoPublisher.send((self.column,0))
               self.env.udpCode.sendUDP("@DominoRotate:" + String(self.column) + ":" + String(self.rotateAngle) + ":" + String(self.flipper))
               self.flipper = 0
             }
@@ -326,6 +297,7 @@ struct DoDomino: View {
     )
       .onReceive(flipDominoPublisher, perform: { ( tupple ) in
         let (domino,direction) = tupple
+        hideBackPublisher.send(domino)
         if domino == self.$column.wrappedValue {
           withAnimation {
             if self.rotateAngle < 360 {
@@ -346,6 +318,7 @@ struct DoDomino: View {
 }
 
 struct Domino: View {
+ @EnvironmentObject var env : MyAppEnvironmentData
   @Binding var highImage:String
   @Binding var lowImage:String
   @Binding var flipper: Double
@@ -365,8 +338,8 @@ struct Domino: View {
             .rotationEffect(.degrees(flipper), anchor: .center)
             .onTapGesture(count: 2) {
               flipDominoPublisher.send((self.index, 180))
+              self.env.udpCode.sendUDP("@DominoFlip:180")
             }
-            
           Divider()
             .frame(width: 24, height: 2, alignment: .center)
           Image(lowImage)
@@ -376,8 +349,11 @@ struct Domino: View {
             .rotationEffect(.degrees(flipper), anchor: .center)
             .onTapGesture(count: 2) {
               flipDominoPublisher.send((self.index, -180))
+              self.env.udpCode.sendUDP("@DominoFlip:-180")
             }
-      })
+      }).onReceive(flipPublisher) { ( direction ) in
+          flipDominoPublisher.send((self.index, direction))
+      }
   }
 }
 
@@ -433,12 +409,6 @@ func allocateImagesV() -> ([newView],Set<String>) {
     } while !primaryImages.isEmpty
   }
   
-//  var count = 0
-//  for tile in tiles {
-//    print("tile ",tile,count)
-//    count += 1
-//  }
-  
   var answer:[newView] = []
   for tile in tiles {
     var highImage:String!
@@ -471,7 +441,14 @@ func redoImages(tileString: String) -> ([newView],Set<String>) {
   return (answer,[])
 }
 
-  
+extension UIWindow {
+  open override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+    if motion == .motionShake {
+//      print("Device shaken")
+      resetPublisher.send()
+    }
+  }
+}
 
 //struct dominoView: View {
 //  @State var topNo:Int!
@@ -517,14 +494,40 @@ func redoImages(tileString: String) -> ([newView],Set<String>) {
 //  }
 //}
 
-extension UIWindow {
-  open override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
-    if motion == .motionShake {
-//      print("Device shaken")
-      resetPublisher.send()
-    }
-  }
-}
+
+
+//struct ContentView: View {
+//  var body: some View {
+//    let screenSize = UIScreen.main.bounds
+//    let screenWidth = screenSize.width
+//    let screenHeight = screenSize.height
+//    return ScrollView(Axis.Set.horizontal, showsIndicators: true) {
+//      VStack {
+//        ZStack {
+//          Rectangle()
+//            .fill(Color.yellow)
+//            .frame(minWidth: screenWidth * 1.5, maxHeight: screenHeight * 0.6)
+//          ZStack {
+//          Text("Dominos with")
+//            .font(Fonts.zapfino(size: 56))
+//            .opacity(0.5)
+//            .offset(CGSize(width: 0, height: -60))
+//          Text("Better Programming")
+//            .font(Fonts.zapfino(size: 56))
+//            .opacity(0.5)
+//            .offset(CGSize(width: 0, height: 40))
+//          }.padding()
+//        }
+//        HStack {
+//          DominoWrapper(highImage: "Image-1", lowImage: "Image-12")
+//          DominoWrapper(highImage: "Image-2", lowImage: "Image-13")
+//          DominoWrapper(highImage: "Image-3", lowImage: "Image-14")
+//        }.padding()
+//      }
+//    }
+//  }
+//}
+
 
 //struct DominoesView_Previews: PreviewProvider {
 //    static var previews: some View {
