@@ -14,6 +14,7 @@ let flipDominoPublisher = PassthroughSubject<(Int,Double), Never>()
 let redoDominoes = PassthroughSubject<String, Never>()
 let turnPublisher = PassthroughSubject<Void, Never>()
 let movePublisher = PassthroughSubject<moverNshaker, Never>()
+let rotatePublisher = PassthroughSubject<(Int, Double, Double), Never>()
 
 struct newView:Identifiable {
   var id:UUID? = UUID()
@@ -231,6 +232,7 @@ struct DominoWrapper: View {
         let (domino,direction) = tupple
         if domino == self.$column.wrappedValue {
           self.newAngle += direction
+          
         }
       }
       .opacity(hideBack ? 0.3:1)
@@ -290,18 +292,18 @@ struct DoDomino: View {
   @State var column:Int
   @State var dragOffset = CGSize.zero
   @State var accumulated = CGSize.zero
-  @State var rotateAngle:Double = 0 {
-    didSet {
-      let d2S = String(rotateAngle) + ":" + String(column)
-      env.udpCode.sendUDP("@DominoRotate:" + d2S)
-    }
-  }
+  @State var rotateAngle:Double = 0
   @State var highImage:String
   @State var lowImage:String
   @State var flipper:Double = 0
   
   var body: some View {
     Domino(highImage: $highImage, lowImage: $lowImage, flipper: $flipper, index: $column)
+      .onReceive(rotatePublisher, perform: { ( data ) in
+        let (col,ang, flip) = data
+        self.rotateAngle = ang
+        self.flipper = flip
+      })
       .border(Color.black)
       .rotationEffect(.degrees(self.rotateAngle), anchor: .center)
       .gesture(LongPressGesture()
@@ -311,32 +313,34 @@ struct DoDomino: View {
               self.rotateAngle += 90
               self.flipper -= 90
               rotateDominoPublisher.send((self.column,90))
+              self.env.udpCode.sendUDP("@DominoRotate:" + String(self.column) + ":" + String(self.rotateAngle) + ":" + String(self.flipper))
             } else {
               self.rotateAngle = 0
               rotateDominoPublisher.send((self.column,0))
+              self.env.udpCode.sendUDP("@DominoRotate:" + String(self.column) + ":" + String(self.rotateAngle) + ":" + String(self.flipper))
               self.flipper = 0
             }
           }
           }
         )
     )
-    .onReceive(flipDominoPublisher, perform: { ( tupple ) in
-                let (domino,direction) = tupple
-                if domino == self.$column.wrappedValue {
-                withAnimation {
-                if self.rotateAngle < 360 {
-                  self.rotateAngle += direction
-                  self.flipper -= direction
-                } else {
-                  self.rotateAngle = 0
-                  self.flipper = 0
-                }
-              }
-              }
-        }).onReceive(resetPublisher) { (_) in
-            self.flipper = 0
-            self.rotateAngle = 0
+      .onReceive(flipDominoPublisher, perform: { ( tupple ) in
+        let (domino,direction) = tupple
+        if domino == self.$column.wrappedValue {
+          withAnimation {
+            if self.rotateAngle < 360 {
+              self.rotateAngle += direction
+              self.flipper -= direction
+            } else {
+              self.rotateAngle = 0
+              self.flipper = 0
+            }
           }
+        }
+      }).onReceive(resetPublisher) { (_) in
+        self.flipper = 0
+        self.rotateAngle = 0
+    }
     
   }
 }

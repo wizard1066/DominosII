@@ -96,62 +96,62 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.listening?.start(queue: .main)
   }
   
-//  var udpLink = false
-//  var udpConnection: NWConnection?
-//
-//  func resetUDPLink() {
-//    udpLink = false
-//    udpConnection = nil
-//  }
+  //  var udpLink = false
+  //  var udpConnection: NWConnection?
+  //
+  //  func resetUDPLink() {
+  //    udpLink = false
+  //    udpConnection = nil
+  //  }
   
-
   
-//  func specialUDPSend(on connection: NWConnection, content:String) {
-//    let contentToSendUDP = content.data(using: String.Encoding.utf8)
-//      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
-//      if (NWError == nil) {
-//        // This is pickup any immediate response
-//        self.receive(on: connection, recursive: false)
-//      } else {
-//        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
-//      }
-//    })))
-//    connection.start(queue: .main)
-//  }
+  
+  //  func specialUDPSend(on connection: NWConnection, content:String) {
+  //    let contentToSendUDP = content.data(using: String.Encoding.utf8)
+  //      connection.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+  //      if (NWError == nil) {
+  //        // This is pickup any immediate response
+  //        self.receive(on: connection, recursive: false)
+  //      } else {
+  //        print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
+  //      }
+  //    })))
+  //    connection.start(queue: .main)
+  //  }
   
   func receive(on connection: NWConnection, recursive: Bool) {
-      print("listeningX")
-      connection.receiveMessage { (data, context, isComplete, error) in
-        if let error = error {
-          print(error)
-          return
-        }
-        if let content = data, !content.isEmpty {
-          DispatchQueue.main.async {
+    print("listeningX")
+    connection.receiveMessage { (data, context, isComplete, error) in
+      if let error = error {
+        print(error)
+        return
+      }
+      if let content = data, !content.isEmpty {
+        DispatchQueue.main.async {
           let backToString = String(decoding: content, as: UTF8.self)
           print("backTOString ",backToString)
         }
         
-        }
-        if connection.state == .ready && isComplete == true && recursive {
-          self.receive(on: connection, recursive: true)
-        }
       }
+      if connection.state == .ready && isComplete == true && recursive {
+        self.receive(on: connection, recursive: true)
+      }
+    }
   }
   
   // 8192 is the maximum number of fragments for an IPv4 datagram or UDP packet
   
-
+  
   
   func receive8192(on connection: NWConnection, recursive: Bool) {
     connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { (data, context, isComplete, error) in
       
-        debugPrint("\(Date()) TcpReader: got a message \(String(describing: data?.count)) bytes")
-        if let content = data {
-            DispatchQueue.main.async {
+      debugPrint("\(Date()) TcpReader: got a message \(String(describing: data?.count)) bytes")
+      if let content = data {
+        DispatchQueue.main.async {
           let backToString = String(decoding: content, as: UTF8.self)
           debugPrint("receive8192 ",backToString)
-//          talkingPublisher.send(backToString + " UDP")
+          //          talkingPublisher.send(backToString + " UDP")
           if backToString.contains("@ComePlay:") {
             player = MaPlayers.deux
             let clientName = backToString.replacingOccurrences(of: "@ComePlay:", with: "")
@@ -161,7 +161,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
           }
           if backToString.contains("@DominoesSet:") {
             let dominoPairs = backToString.replacingOccurrences(of: "@DominoesSet:", with: "")
-//            .dropFirst().dropLast().replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: " ", with: "")
+            //            .dropFirst().dropLast().replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: " ", with: "")
             redoDominoes.send(String(dominoPairs))
             let pairs = dominoPairs.split(separator: ",")
             for pair in pairs {
@@ -173,32 +173,39 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
             turn = player
             turnPublisher.send()
           }
-              if backToString.contains("@DominoMove:") {
-                let dominoMove = backToString.replacingOccurrences(of: "@DominoMove:", with: "")
-                let jsonData = dominoMove.data(using: .utf8)!
-                do {
-                  let jsonDecoder = JSONDecoder()
-                  let dominoMove = try jsonDecoder.decode(moverNshaker.self, from: jsonData)
-                  movePublisher.send(dominoMove)
-                } catch {
-                  print("Unexpected error: \(error).")
-                }
-                print("DominoMove ",dominoMove)
-              }
-              if backToString.contains("@DominoRotate:") {
-                let dominoRotate = backToString.replacingOccurrences(of: "@DominoMove:", with: "")
-                print("dominoRotate ",dominoRotate)
-              }
-//          talkingPublisher.send("ok")
+          if backToString.contains("@DominoMove:") {
+            let dominoMove = backToString.replacingOccurrences(of: "@DominoMove:", with: "")
+            let jsonData = dominoMove.data(using: .utf8)!
+            do {
+              let jsonDecoder = JSONDecoder()
+              let dominoMove = try jsonDecoder.decode(moverNshaker.self, from: jsonData)
+              movePublisher.send(dominoMove)
+            } catch {
+              print("Unexpected error: \(error).")
+            }
+            print("DominoMove ",dominoMove)
+          }
+          if backToString.contains("@DominoRotate:") {
+            let dominoRotate = backToString.replacingOccurrences(of: "@DominoRotate:", with: "")
+            print("dominoRotate ",dominoRotate)
+            let data = dominoRotate.split(separator: ":")
+            let piece = Int(data[0])!
+            let angle = Double(data[1])!
+            let flip = Double(data[2])!
+            rotatePublisher.send((piece,angle,flip))
+            if flip == 0 {
+              rotateDominoPublisher.send((piece,180))
+            } else {
+              rotateDominoPublisher.send((piece,90))
+            }
+          }
         }
-//        self.udpLink = true
-//        self.udpConnection = connection
-        }
-        print("connection.state",connection.state,"isComplete",isComplete,"recursive",recursive)
-        if connection.state == .ready && isComplete == true && recursive {
-          print("re-running")
-          self.receive8192(on: connection, recursive: true)
-        }
+      }
+      print("connection.state",connection.state,"isComplete",isComplete,"recursive",recursive)
+      if connection.state == .ready && isComplete == true && recursive {
+        print("re-running")
+        self.receive8192(on: connection, recursive: true)
+      }
     }
   }
   
@@ -219,7 +226,7 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     self.talking?.start(queue: .main)
   }
   
-    func bonjourToUDP(_ called:String) {
+  func bonjourToUDP(_ called:String) {
     if called.isEmpty {
       alertPublisher.send()
       return
@@ -237,10 +244,10 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
   }
   
   func sendUDP(_ content: String?) {
-//    if udpLink {
-//      specialUDPSend(on: udpConnection!, content: content!)
-//      return
-//    }
+    //    if udpLink {
+    //      specialUDPSend(on: udpConnection!, content: content!)
+    //      return
+    //    }
     let contentToSendUDP = content?.data(using: String.Encoding.utf8)
     self.talking?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
@@ -252,13 +259,13 @@ class UDPNetwork: NSObject, NetServiceDelegate, NetServiceBrowserDelegate {
     })))
   }
   
-    func superUDPSend(content:String) {
+  func superUDPSend(content:String) {
     let contentToSendUDP = content.data(using: String.Encoding.utf8)
-      let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
-        self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
+    let context = NWConnection.ContentContext(identifier: "Yo", expiration: 1, priority: 1, isFinal: true, antecedent: nil, metadata: nil)
+    self.talking?.send(content: contentToSendUDP, contentContext: context, isComplete: true, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
       if (NWError == nil) {
         // This is pickup any immediate response
-//        self.receive(on: self.talking, recursive: false)
+        //        self.receive(on: self.talking, recursive: false)
       } else {
         print("ERROR! Error when data (Type: String) sending. NWError: \n \(NWError!) ")
       }
